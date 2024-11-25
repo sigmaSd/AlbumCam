@@ -30,7 +30,7 @@ npx expo start
 - @react-native-async-storage/async-storage
 
 ## screenshots
-[add your app screenshots here]
+<img src="https://github.com/user-attachments/assets/e4ae8014-b138-4dc5-8683-e817ba0c41ea" style="width: 20%"/>
 
 ---
 built with expo and react native
