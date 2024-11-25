@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
@@ -12,6 +12,17 @@ import {
 import { type CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorageModule from "@react-native-async-storage/async-storage";
+// hack just to make it type check, but it does already work at runtime
+const AsyncStorage = AsyncStorageModule as unknown as {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<void>;
+};
+
+const STORAGE_KEYS = {
+  LOCATIONS: "@camera_locations",
+  SELECTED_LOCATION: "@selected_location",
+};
 
 const CameraApp = () => {
   // Camera state
@@ -30,6 +41,51 @@ const CameraApp = () => {
     false,
   );
   const [newLocationName, setNewLocationName] = useState("");
+
+  // Load saved data when component mounts
+  useEffect(() => {
+    loadSavedData();
+  }, []);
+
+  // Save data whenever locations or selectedLocationId changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    saveData();
+  }, [locations, selectedLocationId]);
+
+  const loadSavedData = async () => {
+    try {
+      const savedLocations = await AsyncStorage.getItem(STORAGE_KEYS.LOCATIONS);
+      const savedSelectedLocation = await AsyncStorage.getItem(
+        STORAGE_KEYS.SELECTED_LOCATION,
+      );
+
+      if (savedLocations) {
+        setLocations(JSON.parse(savedLocations));
+      }
+
+      if (savedSelectedLocation) {
+        setSelectedLocationId(savedSelectedLocation);
+      }
+    } catch (error) {
+      console.error("Error loading saved data:", error);
+    }
+  };
+
+  const saveData = async () => {
+    try {
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.LOCATIONS,
+        JSON.stringify(locations),
+      );
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.SELECTED_LOCATION,
+        selectedLocationId,
+      );
+    } catch (error) {
+      console.error("Error saving data:", error);
+    }
+  };
 
   // Handle missing permissions
   if (!cameraPermission || !mediaLibraryPermission) {
@@ -80,7 +136,7 @@ const CameraApp = () => {
         await MediaLibrary.createAlbumAsync(
           selectedLocation.name,
           asset,
-          false,
+          true,
         );
 
         // Alert.alert(
@@ -107,7 +163,8 @@ const CameraApp = () => {
       path: `DCIM/CameraApp/${newLocationName.trim()}`,
     };
 
-    setLocations([...locations, newLocation]);
+    const updatedLocations = [...locations, newLocation];
+    setLocations(updatedLocations);
     setNewLocationName("");
     setIsAddLocationModalVisible(false);
   };
@@ -119,7 +176,8 @@ const CameraApp = () => {
       return;
     }
 
-    setLocations(locations.filter((loc) => loc.id !== id));
+    const updatedLocations = locations.filter((loc) => loc.id !== id);
+    setLocations(updatedLocations);
     if (selectedLocationId === id) {
       setSelectedLocationId("1");
     }
@@ -264,7 +322,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   camera: {
-    flex: 0.7,
+    flex: 0.8,
     width: "100%",
   },
   cameraButtonContainer: {
