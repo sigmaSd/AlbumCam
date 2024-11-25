@@ -1,50 +1,36 @@
-# Welcome to your Expo app 👋
+# Camera Location Switcher
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A simple camera app that lets you instantly switch between different photo albums while taking pictures.
 
-## Get started
+## main feature
+- 📸 take photos and save them directly to different albums with a single tap
+- 🔄 quickly switch between albums via the bottom horizontal menu
+- ➕ create new album locations on the fly
+- 🗑️ long press to remove unwanted albums
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+## quick start
 ```bash
-npm run reset-project
+# install dependencies
+npm install
+
+# run the app
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## how to use
+1. grant camera and storage permissions
+2. select or create an album location from the bottom menu
+3. take pictures - they'll automatically save to the selected album
+4. long press any custom album to delete it
 
-## Learn more
+## requirements
+- expo
+- expo-camera
+- expo-media-library
+- @react-native-async-storage/async-storage
 
-To learn more about developing your project with Expo, look at the following resources:
+## screenshots
+[add your app screenshots here]
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+built with expo and react native
