@@ -212,73 +212,74 @@ const CameraApp = () => {
         </View>
       </CameraView>
 
-      {/* Location Buttons Scroll View */}
-      <View style={styles.locationButtonsContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {locations.map((location) => (
-            <View key={location.id} style={styles.locationButtonWrapper}>
-              <TouchableOpacity
-                style={[
-                  styles.locationButton,
-                  selectedLocationId === location.id &&
-                  styles.selectedLocationButton,
-                ]}
-                onPress={() =>
-                  setSelectedLocationId(location.id)}
-                onLongPress={() => {
-                  if (location.id !== "1") {
-                    Alert.alert(
-                      "Remove Location",
-                      `Remove ${location.name}?`,
-                      [
-                        {
-                          text: "Cancel",
-                          style: "cancel",
-                        },
-                        {
-                          text: "Remove",
-                          onPress: () =>
-                            removeLocation(location.id),
-                          style: "destructive",
-                        },
-                      ],
-                    );
-                  }
-                }}
-              >
-                <Text
+      <View style={styles.bottomContainer}>
+        {/* Location Buttons Container with Fixed Add Button */}
+        <View style={styles.locationButtonsContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.locationScrollView}
+            contentContainerStyle={styles.locationButtonsScroll}
+          >
+            {locations.map((location) => (
+              <View key={location.id} style={styles.locationButtonWrapper}>
+                <TouchableOpacity
                   style={[
-                    styles.locationButtonText,
+                    styles.locationButton,
                     selectedLocationId === location.id &&
-                    styles.selectedLocationText,
+                    styles.selectedLocationButton,
                   ]}
+                  onPress={() =>
+                    setSelectedLocationId(location.id)}
+                  onLongPress={() => {
+                    if (location.id !== "1") {
+                      Alert.alert(
+                        "Remove Location",
+                        `Remove ${location.name}?`,
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          {
+                            text: "Remove",
+                            onPress: () =>
+                              removeLocation(location.id),
+                            style: "destructive",
+                          },
+                        ],
+                      );
+                    }
+                  }}
                 >
-                  {location.name}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+                  <Text
+                    style={[
+                      styles.locationButtonText,
+                      selectedLocationId === location.id &&
+                      styles.selectedLocationText,
+                    ]}
+                  >
+                    {location.name}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
 
-          {/* Add Location Button */}
+          {/* Fixed Add Button */}
           <TouchableOpacity
             style={styles.addLocationButton}
             onPress={() => setIsAddLocationModalVisible(true)}
           >
             <Text style={styles.addLocationButtonText}>+</Text>
           </TouchableOpacity>
-        </ScrollView>
-      </View>
+        </View>
 
-      {/* Capture Button */}
-      <TouchableOpacity
-        style={styles.captureButton}
-        onPress={takePicture}
-      >
-        <View style={styles.captureButtonInner} />
-      </TouchableOpacity>
+        {/* Capture Button */}
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={takePicture}
+        >
+          <View style={styles.captureButtonInner} />
+        </TouchableOpacity>
+      </View>
 
       {/* Add Location Modal */}
       <Modal
@@ -362,9 +363,20 @@ const styles = StyleSheet.create({
   controlButtonText: {
     fontSize: 20,
   },
-  locationButtonsContainer: {
-    padding: 10,
+  bottomContainer: {
     backgroundColor: "#000",
+    paddingBottom: 20,
+  },
+  locationButtonsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+  },
+  locationScrollView: {
+    flex: 1,
+  },
+  locationButtonsScroll: {
+    paddingRight: 10,
   },
   locationButtonWrapper: {
     marginRight: 8,
@@ -386,13 +398,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   addLocationButton: {
-    backgroundColor: "#333",
+    backgroundColor: "#007AFF",
     padding: 8,
     borderRadius: 20,
     width: 36,
     height: 36,
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 10,
   },
   addLocationButtonText: {
     color: "#fff",
