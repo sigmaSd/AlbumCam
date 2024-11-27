@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "cam2",
-    "slug": "cam2",
+    "name": "AlbumCam",
+    "slug": "albumcam",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sigmacool.cam2"
+      "package": "com.sigmacool.albumcam"
     },
     "web": {
       "bundler": "metro",

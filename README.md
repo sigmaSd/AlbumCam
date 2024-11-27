@@ -1,4 +1,4 @@
-# Camera Location Switcher
+# Album Camera
 
 A simple camera app that lets you instantly switch between different photo albums while taking pictures.
 
