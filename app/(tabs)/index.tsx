@@ -27,6 +27,7 @@ const STORAGE_KEYS = {
 const CameraApp = () => {
   // Camera state
   const [facing, setFacing] = useState<CameraType>("back");
+  const [flash, setFlash] = useState<"off" | "on">("off");
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary
     .usePermissions();
@@ -190,13 +191,23 @@ const CameraApp = () => {
         style={styles.camera}
         facing={facing}
         ref={(ref) => setCamera(ref)}
+        flash={flash}
       >
-        <View style={styles.cameraButtonContainer}>
+        <View style={styles.cameraControlsContainer}>
           <TouchableOpacity
-            style={styles.flipButton}
+            style={styles.controlButton}
+            onPress={() => setFlash(flash === "on" ? "off" : "on")}
+          >
+            <Text style={styles.controlButtonText}>
+              {flash === "on" ? "📸" : "⚡️"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.controlButton}
             onPress={toggleCameraFacing}
           >
-            <Text style={styles.buttonText}>Flip</Text>
+            <Text style={styles.controlButtonText}>🔄</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
@@ -238,7 +249,13 @@ const CameraApp = () => {
                   }
                 }}
               >
-                <Text style={styles.locationButtonText}>
+                <Text
+                  style={[
+                    styles.locationButtonText,
+                    selectedLocationId === location.id &&
+                    styles.selectedLocationText,
+                  ]}
+                >
                   {location.name}
                 </Text>
               </TouchableOpacity>
@@ -260,7 +277,7 @@ const CameraApp = () => {
         style={styles.captureButton}
         onPress={takePicture}
       >
-        <Text style={styles.captureButtonText}>Capture</Text>
+        <View style={styles.captureButtonInner} />
       </TouchableOpacity>
 
       {/* Add Location Modal */}
@@ -276,6 +293,7 @@ const CameraApp = () => {
             <TextInput
               style={styles.modalInput}
               placeholder="Location Name"
+              placeholderTextColor="#666"
               value={newLocationName}
               onChangeText={setNewLocationName}
             />
@@ -303,14 +321,15 @@ const CameraApp = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#000",
   },
   message: {
     textAlign: "center",
     paddingBottom: 10,
+    color: "#fff",
   },
   permissionButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#007AFF",
     padding: 15,
     margin: 20,
     borderRadius: 10,
@@ -322,76 +341,89 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   camera: {
-    flex: 0.8,
+    flex: 1,
     width: "100%",
   },
-  cameraButtonContainer: {
+  cameraControlsContainer: {
     flex: 1,
-    backgroundColor: "transparent",
     flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
   },
-  flipButton: {
-    position: "absolute",
-    top: 20,
-    right: 20,
+  controlButton: {
     backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
+  controlButtonText: {
+    fontSize: 20,
   },
   locationButtonsContainer: {
     padding: 10,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#000",
   },
   locationButtonWrapper: {
-    marginRight: 10,
+    marginRight: 8,
   },
   locationButton: {
-    backgroundColor: "#e0e0e0",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#333",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
   selectedLocationButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#007AFF",
   },
   locationButtonText: {
-    color: "black",
+    color: "#fff",
+    fontSize: 14,
+  },
+  selectedLocationText: {
+    fontWeight: "600",
   },
   addLocationButton: {
-    backgroundColor: "#2196F3",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#333",
+    padding: 8,
+    borderRadius: 20,
+    width: 36,
+    height: 36,
     justifyContent: "center",
     alignItems: "center",
   },
   addLocationButtonText: {
-    color: "white",
-    fontSize: 18,
+    color: "#fff",
+    fontSize: 20,
   },
   captureButton: {
-    backgroundColor: "#4CAF50",
-    padding: 15,
-    margin: 10,
-    borderRadius: 10,
-    alignItems: "center",
+    alignSelf: "center",
+    marginVertical: 20,
+    width: 70,
+    height: 70,
+    backgroundColor: "#fff",
+    borderRadius: 35,
+    padding: 5,
   },
-  captureButtonText: {
-    color: "white",
-    fontSize: 18,
+  captureButtonInner: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#000",
   },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.8)",
   },
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: "#222",
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 15,
     width: "80%",
   },
   modalTitle: {
@@ -399,34 +431,38 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
     textAlign: "center",
+    color: "#fff",
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
+    borderColor: "#444",
+    padding: 12,
     marginBottom: 15,
-    borderRadius: 5,
+    borderRadius: 8,
+    color: "#fff",
+    backgroundColor: "#333",
   },
   modalButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
   modalCancelButton: {
-    backgroundColor: "#f44336",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#444",
+    padding: 12,
+    borderRadius: 8,
     flex: 1,
     marginRight: 10,
   },
   modalAddButton: {
-    backgroundColor: "#4CAF50",
-    padding: 10,
-    borderRadius: 5,
+    backgroundColor: "#007AFF",
+    padding: 12,
+    borderRadius: 8,
     flex: 1,
   },
   modalButtonText: {
-    color: "white",
+    color: "#fff",
     textAlign: "center",
+    fontWeight: "600",
   },
 });
 
