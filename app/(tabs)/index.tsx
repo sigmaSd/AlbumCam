@@ -28,6 +28,7 @@ const CameraApp = () => {
   // Camera state
   const [facing, setFacing] = useState<CameraType>("back");
   const [flash, setFlash] = useState<"off" | "on">("off");
+  const [zoom, setZoom] = useState(0);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary
     .usePermissions();
@@ -117,6 +118,14 @@ const CameraApp = () => {
     setFacing((current) => current === "back" ? "front" : "back");
   };
 
+  const zoomIn = () => {
+    setZoom(Math.min(1, zoom + 0.1));
+  };
+
+  const zoomOut = () => {
+    setZoom(Math.max(0, zoom - 0.1));
+  };
+
   // Take photo functionality
   const takePicture = async () => {
     if (camera) {
@@ -192,23 +201,41 @@ const CameraApp = () => {
         facing={facing}
         ref={(ref) => setCamera(ref)}
         flash={flash}
+        zoom={zoom}
       >
         <View style={styles.cameraControlsContainer}>
-          <TouchableOpacity
-            style={styles.controlButton}
-            onPress={() => setFlash(flash === "on" ? "off" : "on")}
-          >
-            <Text style={styles.controlButtonText}>
-              {flash === "on" ? "📸" : "⚡️"}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.controlsRow}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={() => setFlash(flash === "on" ? "off" : "on")}
+            >
+              <Text style={styles.controlButtonText}>
+                {flash === "on" ? "📸" : "⚡️"}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.controlButton}
-            onPress={toggleCameraFacing}
-          >
-            <Text style={styles.controlButtonText}>🔄</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={toggleCameraFacing}
+            >
+              <Text style={styles.controlButtonText}>🔄</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.zoomControls}>
+            <TouchableOpacity
+              style={styles.zoomButton}
+              onPress={zoomIn}
+            >
+              <Text style={styles.zoomButtonText}>🔍</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.zoomButton}
+              onPress={zoomOut}
+            >
+              <Text style={styles.zoomButtonText}>⊖</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </CameraView>
 
@@ -347,9 +374,11 @@ const styles = StyleSheet.create({
   },
   cameraControlsContainer: {
     flex: 1,
+    padding: 20,
+  },
+  controlsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
   },
   controlButton: {
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -362,6 +391,29 @@ const styles = StyleSheet.create({
   },
   controlButtonText: {
     fontSize: 20,
+  },
+  zoomControls: {
+    position: "absolute",
+    right: 20,
+    top: "50%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 25,
+    padding: 5,
+    opacity: 0.5,
+  },
+  zoomButton: {
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 12,
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 5,
+  },
+  zoomButtonText: {
+    fontSize: 20,
+    color: "#fff",
   },
   bottomContainer: {
     backgroundColor: "#000",
