@@ -8,6 +8,11 @@ A simple camera app that lets you instantly switch between different photo album
 - ➕ create new album locations on the fly
 - 🗑️ long press to remove unwanted albums
 
+## Download
+Binaries are built with [eas](https://expo.dev/eas)
+
+- [apk](https://expo.dev/artifacts/eas/qNxCK2aJnvr9AXNNNkjkJ4.apk)
+
 ## quick start
 ```bash
 # install dependencies
