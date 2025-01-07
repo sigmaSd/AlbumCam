@@ -18,7 +18,7 @@ A simple camera app that lets you instantly switch between different photo album
 ## Download
 Binaries are built with [eas](https://expo.dev/eas)
 
-- [apk](https://expo.dev/artifacts/eas/qNxCK2aJnvr9AXNNNkjkJ4.apk)
+- [apk](https://expo.dev/artifacts/eas/wvUftL2phVZkWJZUkbHvVJ.apk)
 
 ## quick start
 ```bash
