@@ -200,7 +200,7 @@ const CameraApp = () => {
         style={styles.camera}
         facing={facing}
         ref={(ref) => setCamera(ref)}
-        flash={flash}
+        enableTorch={flash === "on" ? true : false}
         zoom={zoom}
       >
         <View style={styles.cameraControlsContainer}>
@@ -210,7 +210,7 @@ const CameraApp = () => {
               onPress={() => setFlash(flash === "on" ? "off" : "on")}
             >
               <Text style={styles.controlButtonText}>
-                {flash === "on" ? "📸" : "⚡️"}
+                {flash === "on" ? "🔦" : "🔆"}
               </Text>
             </TouchableOpacity>
 
@@ -227,13 +227,13 @@ const CameraApp = () => {
               style={styles.zoomButton}
               onPress={zoomIn}
             >
-              <Text style={styles.zoomButtonText}>🔍</Text>
+              <Text style={styles.zoomButtonText}>+</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.zoomButton}
               onPress={zoomOut}
             >
-              <Text style={styles.zoomButtonText}>⊖</Text>
+              <Text style={styles.zoomButtonText}>-</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -412,8 +412,14 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   zoomButtonText: {
-    fontSize: 20,
-    color: "#fff",
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#aff",
+    opacity: 0.9,
+    textAlign: "center",
+    textAlignVertical: "center", // Android
+    includeFontPadding: false, // Android
+    lineHeight: 28, // Match fontSize for better vertical centering
   },
   bottomContainer: {
     backgroundColor: "#000",
