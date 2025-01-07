@@ -24,6 +24,12 @@ const STORAGE_KEYS = {
   SELECTED_LOCATION: "@selected_location",
 };
 
+type Locaton = {
+  id: string;
+  name: string;
+  path: string;
+};
+
 const CameraApp = () => {
   // Camera state
   const [facing, setFacing] = useState<CameraType>("back");
@@ -35,7 +41,7 @@ const CameraApp = () => {
   const [camera, setCamera] = useState<CameraView | null>(null);
 
   // Location buttons state
-  const [locations, setLocations] = useState([
+  const [locations, setLocations] = useState<Locaton[]>([
     { id: "1", name: "Default", path: "DCIM/CameraApp" },
   ]);
   const [selectedLocationId, setSelectedLocationId] = useState("1");
@@ -43,6 +49,11 @@ const CameraApp = () => {
     false,
   );
   const [newLocationName, setNewLocationName] = useState("");
+  const [isAlbumSelectionModalVisible, setIsAlbumSelectionModalVisible] =
+    useState(false);
+  const [availableAlbums, setAvailableAlbums] = useState<MediaLibrary.Album[]>(
+    [],
+  );
 
   // Load saved data when component mounts
   useEffect(() => {
@@ -86,6 +97,15 @@ const CameraApp = () => {
       );
     } catch (error) {
       console.error("Error saving data:", error);
+    }
+  };
+
+  const fetchAvailableAlbums = async () => {
+    try {
+      const albums = await MediaLibrary.getAlbumsAsync();
+      setAvailableAlbums(albums);
+    } catch (error) {
+      console.error("Error fetching albums:", error);
     }
   };
 
@@ -294,6 +314,10 @@ const CameraApp = () => {
           <TouchableOpacity
             style={styles.addLocationButton}
             onPress={() => setIsAddLocationModalVisible(true)}
+            onLongPress={async () => {
+              await fetchAvailableAlbums();
+              setIsAlbumSelectionModalVisible(true);
+            }}
           >
             <Text style={styles.addLocationButtonText}>+</Text>
           </TouchableOpacity>
@@ -339,6 +363,52 @@ const CameraApp = () => {
                 <Text style={styles.modalButtonText}>Add</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Album Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isAlbumSelectionModalVisible}
+        onRequestClose={() => setIsAlbumSelectionModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Existing Album</Text>
+            <ScrollView style={styles.albumList}>
+              {availableAlbums.map((album) => (
+                <TouchableOpacity
+                  key={album.id}
+                  style={styles.albumItem}
+                  onPress={() => {
+                    if (!locations.some((loc) => loc.name === album.title)) {
+                      const newLocation = {
+                        id: String(Date.now()),
+                        name: album.title,
+                        path: `DCIM/${album.title}`,
+                      };
+                      setLocations([...locations, newLocation]);
+                    } else {
+                      Alert.alert("Album already exists in locations");
+                    }
+                    setIsAlbumSelectionModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.albumItemText}>{album.title}</Text>
+                  <Text style={styles.albumItemCount}>
+                    ({album.assetCount} items)
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={[styles.modalCancelButton, { marginTop: 10 }]}
+              onPress={() => setIsAlbumSelectionModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -534,6 +604,25 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     fontWeight: "600",
+  },
+  albumList: {
+    maxHeight: 300,
+  },
+  albumItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#444",
+  },
+  albumItemText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  albumItemCount: {
+    color: "#999",
+    fontSize: 14,
   },
 });
 
