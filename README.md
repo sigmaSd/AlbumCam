@@ -5,8 +5,15 @@ A simple camera app that lets you instantly switch between different photo album
 ## main feature
 - 📸 take photos and save them directly to different albums with a single tap
 - 🔄 quickly switch between albums via the bottom horizontal menu
-- ➕ create new album locations on the fly
-- 🗑️ long press to remove unwanted albums
+- ➕ manage albums easily:
+  - tap + to create new album
+  - long press + to select from existing albums
+- 🗑️ long press album name to remove unwanted albums (files are not deleted)
+- 📱 camera controls:
+  - switch between front/back cameras
+  - toggle flash/torch
+  - zoom controls
+- 💾 persistent storage of albums and settings
 
 ## Download
 Binaries are built with [eas](https://expo.dev/eas)
@@ -24,9 +31,12 @@ npx expo start
 
 ## how to use
 1. grant camera and storage permissions
-2. select or create an album location from the bottom menu
+2. select or create an album location from the bottom menu:
+   - tap + to create new album
+   - long press + to select from existing albums
 3. take pictures - they'll automatically save to the selected album
-4. long press any custom album to delete it
+4. long press any custom album name to delete it
+5. use camera controls to adjust flash, zoom, and switch cameras
 
 ## requirements
 - expo
