@@ -538,6 +538,10 @@ const styles = StyleSheet.create({
   addLocationButtonText: {
     color: "#fff",
     fontSize: 20,
+    textAlign: "center",
+    textAlignVertical: "center", // for Android
+    lineHeight: 20, // match fontSize for better vertical centering
+    includeFontPadding: false, // for Android to remove extra padding
   },
   captureButton: {
     alignSelf: "center",
