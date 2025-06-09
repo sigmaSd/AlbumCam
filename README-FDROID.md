@@ -31,7 +31,7 @@ This script will:
 If you need to build manually, follow these steps:
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (uses package-lock.json for reproducible builds)
 npm ci
 
 # 2. Set F-Droid environment variables
@@ -71,6 +71,15 @@ This app is designed to be fully compatible with F-Droid's requirements:
 - Deterministic build process
 - Source code available on GitHub
 - Build scripts included
+
+## Package Manager Compatibility
+
+The project supports multiple package managers:
+- **npm** (primary) - Uses `package-lock.json` for reproducible builds
+- **yarn** - Falls back to `yarn.lock` if available
+- **bun** - Falls back to npm install if `bun.lockb` is detected
+
+For F-Droid builds, npm is used with `package-lock.json` to ensure reproducible dependency resolution.
 
 ## Build Environment Variables
 
@@ -121,6 +130,7 @@ eas build --profile f-droid --platform android
 2. **Java version**: F-Droid requires OpenJDK 17
 3. **Clean builds**: Always clean previous builds before F-Droid submission
 4. **Dependencies**: Run `npm ci` instead of `npm install` for reproducible builds
+5. **Lock files**: Ensure `package-lock.json` exists for GitHub Actions compatibility
 
 ### Testing the Build
 
