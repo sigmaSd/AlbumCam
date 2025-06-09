@@ -24,7 +24,7 @@ This script will:
 1. Install dependencies
 2. Clean previous builds
 3. Prebuild the Android project with F-Droid compatible settings
-4. Build the release APK
+4. Build the release APK (F-Droid only requires release builds)
 
 ### Manual Build Process
 
@@ -43,11 +43,10 @@ export EXPO_NO_DOTENV=1
 rm -rf android/ .expo/
 npx expo prebuild --platform android --clean --no-install
 
-# 4. Build the APK
+# 4. Build the release APK (F-Droid only needs release builds)
 cd android
 chmod +x ./gradlew
-./gradlew clean
-./gradlew assembleRelease
+./gradlew clean assembleRelease
 ```
 
 The resulting APK will be located at:
@@ -107,9 +106,9 @@ The F-Droid metadata is located in:
 ## GitHub Actions
 
 Automated builds are available via GitHub Actions:
-- `.github/workflows/android-build.yml` - Builds APKs for releases
-- Triggered on tags and main branch pushes
-- Artifacts are uploaded for testing
+- `.github/workflows/android-build.yml` - Builds release APKs for F-Droid
+- Triggered on tags and fdroid-publish branch pushes
+- Release APK artifacts are uploaded for testing
 
 ## EAS Build Profiles
 
@@ -131,6 +130,7 @@ eas build --profile f-droid --platform android
 3. **Clean builds**: Always clean previous builds before F-Droid submission
 4. **Dependencies**: Run `npm ci` instead of `npm install` for reproducible builds
 5. **Lock files**: Ensure `package-lock.json` exists for GitHub Actions compatibility
+6. **Release builds**: F-Droid only requires release APKs, not debug builds
 
 ### Testing the Build
 

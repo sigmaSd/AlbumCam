@@ -282,7 +282,7 @@ if [ $FAILED -eq 0 ]; then
     fi
     echo ""
     echo "Next steps:"
-    echo "1. Test the build: ./build-fdroid.sh"
+    echo "1. Test the release build: ./build-fdroid.sh"
     echo "2. Create a release tag: git tag -a v1.0.0 -m 'Release v1.0.0'"
     echo "3. Push to GitHub: git push origin fdroid-publish --tags"
     echo "4. Submit to F-Droid using FDROID-SUBMISSION.md guide"
@@ -294,6 +294,7 @@ else
     echo "- Remove proprietary dependencies"
     echo "- Run 'npx expo prebuild --platform android' to generate Android files"
     echo "- Review F-Droid metadata configuration"
+    echo "- Ensure release build works: cd android && ./gradlew assembleRelease"
 fi
 
 echo ""
