@@ -335,7 +335,7 @@ const CameraApp = () => {
       {/* Add Location Modal */}
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={isAddLocationModalVisible}
         onRequestClose={() => setIsAddLocationModalVisible(false)}
       >
@@ -370,7 +370,7 @@ const CameraApp = () => {
       {/* Album Selection Modal */}
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={isAlbumSelectionModalVisible}
         onRequestClose={() => setIsAlbumSelectionModalVisible(false)}
       >
