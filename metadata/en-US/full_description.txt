@@ -1,0 +1,25 @@
+AlbumCam is a streamlined camera application designed for photographers who want to organize their photos into different albums while shooting. Instead of sorting photos later, you can instantly assign them to specific albums as you take them.
+
+<b>Key Features:</b>
+• 📸 Take photos and save them directly to different albums with a single tap
+• 🔄 Quickly switch between albums via the bottom horizontal menu
+• ➕ Manage albums easily - tap + to create new album, long press + to select from existing albums
+• 🗑️ Long press album name to remove unwanted albums (files are not deleted)
+• 📱 Full camera controls including front/back camera switching, flash/torch toggle, and zoom controls
+• 💾 Persistent storage of albums and settings
+
+<b>Perfect for:</b>
+• Event photographers who need to separate shots by location or subject
+• Travelers who want to organize photos by destination
+• Anyone who prefers organizing photos while shooting rather than after
+
+<b>How to Use:</b>
+1. Grant camera and storage permissions when prompted
+2. Select or create an album from the bottom menu
+3. Take pictures - they automatically save to the selected album
+4. Switch albums anytime using the horizontal menu
+5. Use camera controls to adjust settings as needed
+
+The app is built with React Native and Expo, ensuring smooth performance across different Android devices. All photos are saved to your device's standard photo directories and can be accessed through your default gallery app.
+
+AlbumCam respects your privacy - no data is collected or transmitted. All album management and photo storage happens locally on your device.
