@@ -3,7 +3,6 @@ Categories:
   - Multimedia
 License: MIT
 AuthorName: sigmacool
-AuthorEmail:
 SourceCode: https://github.com/sigmaSd/AlbumCam
 IssueTracker: https://github.com/sigmaSd/AlbumCam/issues
 
@@ -36,7 +35,7 @@ Builds:
       - node_modules
       - .expo
 
-AutoUpdateMode: Version v%v
+AutoUpdateMode: Version
 UpdateCheckMode: Tags
 CurrentVersion: 1.0.0
 CurrentVersionCode: 1
