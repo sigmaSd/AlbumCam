@@ -1,0 +1,10 @@
+Initial release of AlbumCam
+
+Features:
+• Take photos and save them directly to different albums with a single tap
+• Quickly switch between albums via the bottom horizontal menu
+• Manage albums easily - tap + to create new album, long press + to select from existing albums
+• Long press album name to remove unwanted albums (files are not deleted)
+• Full camera controls including front/back camera switching, flash/torch toggle, and zoom controls
+• Persistent storage of albums and settings
+• Privacy-focused - no data collection or transmission, all processing happens locally

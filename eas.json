@@ -9,13 +9,30 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "android": {
-       "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       },
       "autoIncrement": true
+    },
+    "f-droid": {
+      "extends": "production",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "withoutCredentials": true
+      },
+      "env": {
+        "EXPO_NO_TELEMETRY": "1",
+        "EXPO_NO_ANALYTICS": "1"
+      }
     }
   },
   "submit": {
