@@ -27,7 +27,7 @@ Builds:
       - export EXPO_NO_TELEMETRY=1
       - export EXPO_NO_ANALYTICS=1
       - export EXPO_NO_DOTENV=1
-      - npm ci
+      - if [ -f "package-lock.json" ]; then npm ci; else npm install; fi
       - npx expo prebuild --platform android --clean --no-install
     gradle:
       - yes

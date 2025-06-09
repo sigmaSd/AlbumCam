@@ -15,7 +15,19 @@ fi
 
 # Install dependencies
 echo "Installing dependencies..."
-npm ci
+if [ -f "package-lock.json" ]; then
+    echo "Using npm ci with package-lock.json..."
+    npm ci
+elif [ -f "yarn.lock" ]; then
+    echo "Using yarn with yarn.lock..."
+    yarn install --frozen-lockfile
+elif [ -f "bun.lockb" ]; then
+    echo "Bun lockfile found, using npm install..."
+    npm install
+else
+    echo "No lockfile found, using npm install..."
+    npm install
+fi
 
 # Clean any existing builds
 echo "Cleaning existing builds..."
