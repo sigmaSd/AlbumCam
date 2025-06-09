@@ -27,7 +27,7 @@ Builds:
       - export EXPO_NO_TELEMETRY=1
       - export EXPO_NO_ANALYTICS=1
       - export EXPO_NO_DOTENV=1
-      - if [ -f "package-lock.json" ]; then npm ci; else npm install; fi
+      - if [ -f "package-lock.json" ]; then npm ci --legacy-peer-deps; else npm install --legacy-peer-deps; fi
       - npx expo prebuild --platform android --clean --no-install
     gradle:
       - yes
@@ -64,6 +64,6 @@ Description: |-
   4. Switch albums anytime using the horizontal menu
   5. Use camera controls to adjust settings as needed
 
-  The app is built with React Native and Expo, ensuring smooth performance across different Android devices. All photos are saved to your device's standard photo directories and can be accessed through your default gallery app.
+  The app is built with React Native and the latest Expo SDK 53, ensuring smooth performance across different Android devices with React 19 optimizations. All photos are saved to your device's standard photo directories and can be accessed through your default gallery app.
 
   AlbumCam respects your privacy - no data is collected or transmitted. All album management and photo storage happens locally on your device.
