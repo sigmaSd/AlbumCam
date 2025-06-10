@@ -19,8 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
-          cache-dependency-path: "package-lock.json"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,17 +29,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: Install dependencies
-        run: |
-          if [ -f "package-lock.json" ]; then
-            npm ci
-          elif [ -f "yarn.lock" ]; then
-            yarn install --frozen-lockfile
-          elif [ -f "bun.lockb" ]; then
-            npm install
-          else
-            npm install
-          fi
+        run: bun install
 
       - name: Install Expo CLI
         run: npm install -g @expo/cli
