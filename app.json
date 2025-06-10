@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "albumcam",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -17,31 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.sigmacool.albumcam",
-      "allowBackup": false,
-      "intentFilters": [
-        {
-          "action": "android.intent.action.SEND",
-          "category": [
-            "android.intent.category.DEFAULT"
-          ],
-          "data": [
-            {
-              "mimeType": "image/*"
-            }
-          ]
-        },
-        {
-          "action": "android.intent.action.SEND_MULTIPLE",
-          "category": [
-            "android.intent.category.DEFAULT"
-          ],
-          "data": [
-            {
-              "mimeType": "image/*"
-            }
-          ]
-        }
-      ]
+      "allowBackup": false
     },
     "web": {
       "bundler": "metro",
@@ -68,6 +44,20 @@
           }
         }
       ],
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": [
+            "image/*"
+          ],
+          "androidMultiIntentFilters": [
+            "image/*"
+          ],
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsImageWithMaxCount": 10
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

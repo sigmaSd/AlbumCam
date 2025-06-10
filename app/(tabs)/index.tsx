@@ -18,6 +18,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorageModule from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
+import { useRouter } from "expo-router";
+import { useShareIntent } from "expo-share-intent";
 
 import {
   GestureHandlerRootView,
@@ -46,6 +48,9 @@ type Locaton = {
 const { width, height } = Dimensions.get("window");
 
 const CameraApp = () => {
+  const router = useRouter();
+  const { hasShareIntent, shareIntent } = useShareIntent();
+
   // Camera state
   const [facing, setFacing] = useState<CameraType>("back");
   const [flash, setFlash] = useState<"off" | "on">("off");
@@ -90,6 +95,14 @@ const CameraApp = () => {
   useEffect(() => {
     updatePhotoCount();
   }, [selectedLocationId]);
+
+  // Handle share intent
+  useEffect(() => {
+    if (hasShareIntent && shareIntent?.files && shareIntent.files.length > 0) {
+      // Navigate to share screen when share intent is detected
+      router.push("/share");
+    }
+  }, [hasShareIntent, shareIntent, router]);
 
   // Note: Volume button handling would require a native module
   // This is a placeholder for future implementation

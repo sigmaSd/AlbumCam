@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -16,7 +15,8 @@ import { BlurView } from "expo-blur";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system";
 import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { useShareIntent } from "expo-share-intent";
 // @ts-ignore: AsyncStorage types are not properly exported from the module
 import AsyncStorageModule from "@react-native-async-storage/async-storage";
 
@@ -42,11 +42,15 @@ type SharedImage = {
   uri: string;
   name: string;
   type: string;
+  size?: number;
+  width?: number;
+  height?: number;
 };
 
 const ShareScreen = () => {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const { hasShareIntent, shareIntent, resetShareIntent, error } =
+    useShareIntent();
 
   // State
   const [locations, setLocations] = useState<Location[]>([
@@ -63,7 +67,7 @@ const ShareScreen = () => {
   useEffect(() => {
     loadSavedData();
     processSharedContent();
-  }, []);
+  }, [hasShareIntent, shareIntent]);
 
   const loadSavedData = async () => {
     try {
@@ -95,41 +99,33 @@ const ShareScreen = () => {
     try {
       setIsLoading(true);
 
-      // Check if we have shared URIs in the route params
-      const sharedUris = params.sharedUris as string[] | undefined;
-
-      if (sharedUris && sharedUris.length > 0) {
+      if (
+        hasShareIntent && shareIntent?.files && shareIntent.files.length > 0
+      ) {
         const processedImages: SharedImage[] = [];
 
-        for (const uri of sharedUris) {
-          try {
-            // Get file info
-            const fileInfo = await FileSystem.getInfoAsync(uri);
-            if (fileInfo.exists) {
-              const fileName = uri.split("/").pop() || "shared_image.jpg";
-              processedImages.push({
-                uri,
-                name: fileName,
-                type: "image/*",
-              });
-            }
-          } catch (error) {
-            console.error("Error processing shared image:", error);
+        for (const file of shareIntent.files) {
+          // Check if it's an image file
+          if (file.mimeType && file.mimeType.startsWith("image/")) {
+            processedImages.push({
+              uri: file.path,
+              name: file.fileName || "shared_image.jpg",
+              type: file.mimeType,
+              size: file.size,
+              width: file.width,
+              height: file.height,
+            });
           }
         }
 
         setSharedImages(processedImages);
       } else {
-        // Handle URL scheme sharing
-        const url = await Linking.getInitialURL();
-        if (url && url.includes("share")) {
-          // Parse the URL for image data
-          console.log("Received share URL:", url);
-          // For demo purposes, we'll show a placeholder
-          setSharedImages([]);
-        } else {
-          setSharedImages([]);
-        }
+        setSharedImages([]);
+      }
+
+      if (error) {
+        console.error("Share intent error:", error);
+        Alert.alert("Error", "Failed to process shared images");
       }
     } catch (error) {
       console.error("Error processing shared content:", error);
@@ -238,7 +234,8 @@ const ShareScreen = () => {
           {
             text: "OK",
             onPress: () => {
-              // Close the share screen and return to home
+              // Reset the share intent and return to home
+              resetShareIntent();
               router.replace("/");
             },
           },
@@ -280,6 +277,7 @@ const ShareScreen = () => {
             style={styles.cancelButton}
             onPress={() => {
               hapticFeedback();
+              resetShareIntent();
               router.replace("/");
             }}
           >
@@ -380,6 +378,7 @@ const ShareScreen = () => {
               style={styles.openCameraButton}
               onPress={() => {
                 hapticFeedback();
+                resetShareIntent();
                 router.replace("/");
               }}
             >
