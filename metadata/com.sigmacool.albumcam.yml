@@ -35,20 +35,45 @@ Builds:
       - node_modules
       - .expo
 
+  - versionName: "1.1.0"
+    versionCode: 2
+    commit: v1.1.0
+    subdir: android
+    sudo:
+      - apt-get update || apt-get update
+      - apt-get install -y nodejs npm openjdk-17-jdk-headless
+      - update-alternatives --auto java
+      - curl -fsSL https://bun.sh/install | bash
+    init:
+      - cd ..
+      - export EXPO_NO_TELEMETRY=1
+      - export EXPO_NO_ANALYTICS=1
+      - export EXPO_NO_DOTENV=1
+      - export PATH="$HOME/.bun/bin:$PATH"
+      - bun install
+      - npx expo prebuild --platform android --clean --no-install
+    gradle:
+      - yes
+    scanignore:
+      - android/build
+      - node_modules
+      - .expo
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0
-CurrentVersionCode: 1
+CurrentVersion: 1.1.0
+CurrentVersionCode: 2
 
 Description: |-
   AlbumCam is a streamlined camera application designed for photographers who want to organize their photos into different albums while shooting. Instead of sorting photos later, you can instantly assign them to specific albums as you take them.
 
   '''Key Features:'''
   * 📸 Take photos and save them directly to different albums with a single tap
-  * 🔄 Quickly switch between albums via the bottom horizontal menu
+  * ↔️ Swipe left/right to quickly switch between albums while shooting
   * ➕ Manage albums easily - tap + to create new album, long press + to select from existing albums
   * 🗑️ Long press album name to remove unwanted albums (files are not deleted)
   * 📱 Full camera controls including front/back camera switching, flash/torch toggle, and zoom controls
+  * 📳 Configurable haptic feedback for enhanced user experience
   * 💾 Persistent storage of albums and settings
 
   '''Perfect for:'''
@@ -60,8 +85,9 @@ Description: |-
   1. Grant camera and storage permissions when prompted
   2. Select or create an album from the bottom menu
   3. Take pictures - they automatically save to the selected album
-  4. Switch albums anytime using the horizontal menu
-  5. Use camera controls to adjust settings as needed
+  4. Switch albums by swiping left/right or using the horizontal menu
+  5. Toggle haptic feedback via the settings button in the top-right
+  6. Use camera controls to adjust settings as needed
 
   The app is built with React Native and the latest Expo SDK 53, ensuring smooth performance across different Android devices with React 19 optimizations. All photos are saved to your device's standard photo directories and can be accessed through your default gallery app.
 
