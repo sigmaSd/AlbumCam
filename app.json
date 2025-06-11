@@ -43,20 +43,6 @@
             "enableProguardInReleaseBuilds": false
           }
         }
-      ],
-      [
-        "expo-share-intent",
-        {
-          "androidIntentFilters": [
-            "image/*"
-          ],
-          "androidMultiIntentFilters": [
-            "image/*"
-          ],
-          "iosActivationRules": {
-            "NSExtensionActivationSupportsImageWithMaxCount": 10
-          }
-        }
       ]
     ],
     "experiments": {
