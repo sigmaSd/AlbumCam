@@ -1,5 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
-import type { Location } from "../types";
+import type { Location } from "../types/index.ts";
 
 export class CameraService {
   static async ensurePermissions(): Promise<boolean> {

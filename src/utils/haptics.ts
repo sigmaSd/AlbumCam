@@ -1,5 +1,4 @@
 import * as Haptics from "expo-haptics";
-import { HAPTIC_FEEDBACK, NOTIFICATION_FEEDBACK } from "../constants";
 
 export class HapticService {
   private static isEnabled = true;
@@ -72,31 +71,31 @@ export class HapticService {
     }
   }
 
-  static async tap(): Promise<void> {
+  static tap(): Promise<void> {
     return this.light();
   }
 
-  static async buttonPress(): Promise<void> {
+  static buttonPress(): Promise<void> {
     return this.light();
   }
 
-  static async albumSwitch(): Promise<void> {
+  static albumSwitch(): Promise<void> {
     return this.light();
   }
 
-  static async albumDelete(): Promise<void> {
+  static albumDelete(): Promise<void> {
     return this.medium();
   }
 
-  static async photoCapture(): Promise<void> {
+  static photoCapture(): Promise<void> {
     return this.medium();
   }
 
-  static async saveSuccess(): Promise<void> {
+  static saveSuccess(): Promise<void> {
     return this.success();
   }
 
-  static async saveError(): Promise<void> {
+  static saveError(): Promise<void> {
     return this.error();
   }
 }

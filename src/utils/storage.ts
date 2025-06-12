@@ -1,6 +1,6 @@
 import AsyncStorageModule from "@react-native-async-storage/async-storage";
 import { DEFAULT_LOCATION, STORAGE_KEYS } from "../constants";
-import type { AsyncStorageInterface, Location } from "../types";
+import type { AsyncStorageInterface, Location } from "../types/index.ts";
 
 // Type-safe AsyncStorage wrapper
 const AsyncStorage = AsyncStorageModule as unknown as AsyncStorageInterface;

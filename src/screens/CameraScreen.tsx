@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Animated,
@@ -16,19 +16,19 @@ import { type CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import {
+  Gesture,
+  GestureDetector,
   GestureHandlerRootView,
-  PanGestureHandler as RNGHPanGestureHandler,
-  type PanGestureHandlerStateChangeEvent,
-  State,
 } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
 
-import { StorageService } from "../utils/storage";
-import { HapticService } from "../utils/haptics";
-import { CameraService } from "../utils/camera";
+import { StorageService } from "../utils/storage.ts";
+import { HapticService } from "../utils/haptics.ts";
+import { CameraService } from "../utils/camera.ts";
 import { CAMERA_CONFIG, DEFAULT_LOCATION } from "../constants";
-import type { Location } from "../types";
+import type { Location } from "../types/index.ts";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export const CameraScreen: React.FC = () => {
   // Camera state
@@ -44,8 +44,7 @@ export const CameraScreen: React.FC = () => {
   const [lastTap, setLastTap] = useState(0);
   const [photoCount, setPhotoCount] = useState(0);
 
-  // Gesture refs
-  const panRef = useRef<RNGHPanGestureHandler>(null);
+  // No gesture refs needed with new API
 
   // Location buttons state
   const [locations, setLocations] = useState<Location[]>([DEFAULT_LOCATION]);
@@ -56,6 +55,7 @@ export const CameraScreen: React.FC = () => {
   const [newLocationName, setNewLocationName] = useState("");
   const [isAlbumSelectionModalVisible, setIsAlbumSelectionModalVisible] =
     useState(false);
+  // deno-lint-ignore no-explicit-any
   const [availableAlbums, setAvailableAlbums] = useState<any[]>([]);
   const [isHapticEnabled, setIsHapticEnabled] = useState(true);
 
@@ -139,20 +139,22 @@ export const CameraScreen: React.FC = () => {
     HapticService.albumSwitch();
   };
 
-  const onSwipeGesture = (event: PanGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.state === State.END) {
-      const { translationX, velocityX } = event.nativeEvent;
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-30, 30])
+    .failOffsetY([-50, 50])
+    .onEnd((event) => {
+      "worklet";
+      const { translationX, velocityX } = event;
 
       // Check for swipe with either sufficient translation or velocity
       if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 300) {
         if (translationX > 0 || velocityX > 0) {
-          switchToPreviousAlbum();
+          runOnJS(switchToPreviousAlbum)();
         } else if (translationX < 0 || velocityX < 0) {
-          switchToNextAlbum();
+          runOnJS(switchToNextAlbum)();
         }
       }
-    }
-  };
+    });
 
   const fetchAvailableAlbums = async () => {
     try {
@@ -200,14 +202,15 @@ export const CameraScreen: React.FC = () => {
   };
 
   const zoomIn = () => {
-    setZoom((current) =>
+    // deno-lint-ignore no-explicit-any
+    setZoom((current: any) =>
       Math.min(current + CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MAX_ZOOM)
     );
     HapticService.tap();
   };
 
   const zoomOut = () => {
-    setZoom((current) =>
+    setZoom((current: number) =>
       Math.max(current - CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MIN_ZOOM)
     );
     HapticService.tap();
@@ -305,6 +308,7 @@ export const CameraScreen: React.FC = () => {
     HapticService.albumDelete();
   };
 
+  // deno-lint-ignore no-explicit-any
   const addLocationFromAlbum = (album: any) => {
     const newLocation: Location = {
       id: Date.now().toString(),
@@ -328,12 +332,7 @@ export const CameraScreen: React.FC = () => {
         />
 
         {/* Camera View */}
-        <RNGHPanGestureHandler
-          ref={panRef}
-          onHandlerStateChange={onSwipeGesture}
-          activeOffsetX={[-30, 30]}
-          failOffsetY={[-50, 50]}
-        >
+        <GestureDetector gesture={panGesture}>
           <View style={{ flex: 1 }}>
             <Animated.View
               style={[
@@ -536,7 +535,7 @@ export const CameraScreen: React.FC = () => {
               </View>
             </BlurView>
           </View>
-        </RNGHPanGestureHandler>
+        </GestureDetector>
 
         {/* Add Location Modal */}
         <Modal
