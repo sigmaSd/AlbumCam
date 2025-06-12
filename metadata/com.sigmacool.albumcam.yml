@@ -35,9 +35,9 @@ Builds:
       - node_modules
       - .expo
 
-  - versionName: "1.1.0"
-    versionCode: 2
-    commit: v1.1.0
+  - versionName: "1.2.0"
+    versionCode: 3
+    commit: v1.2.0
     subdir: android
     sudo:
       - apt-get update || apt-get update
@@ -61,8 +61,8 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.1.0
-CurrentVersionCode: 2
+CurrentVersion: 1.2.0
+CurrentVersionCode: 3
 
 Description: |-
   AlbumCam is a streamlined camera application designed for photographers who want to organize their photos into different albums while shooting. Instead of sorting photos later, you can instantly assign them to specific albums as you take them.
@@ -75,6 +75,7 @@ Description: |-
   * 📱 Full camera controls including front/back camera switching, flash/torch toggle, and zoom controls
   * 📳 Configurable haptic feedback for enhanced user experience
   * 💾 Persistent storage of albums and settings
+  * 🏗️ Clean, organized codebase with modular architecture
 
   '''Perfect for:'''
   * Event photographers who need to separate shots by location or subject
@@ -89,6 +90,6 @@ Description: |-
   5. Toggle haptic feedback via the settings button in the top-right
   6. Use camera controls to adjust settings as needed
 
-  The app is built with React Native and the latest Expo SDK 53, ensuring smooth performance across different Android devices with React 19 optimizations. All photos are saved to your device's standard photo directories and can be accessed through your default gallery app.
+  The app is built with React Native and the latest Expo SDK 53, ensuring smooth performance across different Android devices with React 19 optimizations. The codebase has been reorganized with a clean, modular architecture featuring utility services, type safety, and improved error handling. All photos are saved to your device's standard photo directories and can be accessed through your default gallery app.
 
   AlbumCam respects your privacy - no data is collected or transmitted. All album management and photo storage happens locally on your device.
