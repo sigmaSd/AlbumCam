@@ -1,51 +1,52 @@
-# Album Camera
+# AlbumCam 📸
 
-A simple camera app that lets you instantly switch between different photo albums while taking pictures.
+A streamlined camera application for instant photo album organization.
 
-## main feature
-- 📸 take photos and save them directly to different albums with a single tap
-- 🔄 quickly switch between albums via the bottom horizontal menu
-- ➕ manage albums easily:
-  - tap + to create new album
-  - long press + to select from existing albums
-- 🗑️ long press album name to remove unwanted albums (files are not deleted)
-- 📱 camera controls:
-  - switch between front/back cameras
-  - toggle flash/torch
-  - zoom controls
-- 💾 persistent storage of albums and settings
+## Features
 
-## Download
-Binaries are built with [eas](https://expo.dev/eas)
+- 📸 Take photos and organize them into albums instantly
+- ↔️ Swipe left/right to switch between albums while shooting
+- 📳 Configurable haptic feedback
+- 📱 Full camera controls (flash, zoom, front/back camera)
+- 💾 Persistent album settings
 
-- [apk](https://expo.dev/artifacts/eas/wvUftL2phVZkWJZUkbHvVJ.apk)
+## Quick Start
 
-## quick start
 ```bash
-# install dependencies
-npm install
-
-# run the app
-npx expo start
+bun install
+bun expo start
 ```
 
-## how to use
-1. grant camera and storage permissions
-2. select or create an album location from the bottom menu:
-   - tap + to create new album
-   - long press + to select from existing albums
-3. take pictures - they'll automatically save to the selected album
-4. long press any custom album name to delete it
-5. use camera controls to adjust flash, zoom, and switch cameras
+## Documentation
 
-## requirements
-- expo
-- expo-camera
-- expo-media-library
-- @react-native-async-storage/async-storage
+All documentation has been moved to the [`docs/`](./docs) directory:
 
-## screenshots
-<img src="https://github.com/user-attachments/assets/1b0d5d34-92e2-4092-b2cc-8be10d07ebe5" style="width: 20%"/>
+- [F-Droid README](./docs/README-FDROID.md) - F-Droid specific documentation
+- [F-Droid Submission](./docs/FDROID-SUBMISSION.md) - Submission guidelines
+- [License](./docs/LICENSE) - MIT License
 
----
-built with expo and react native
+## Project Structure
+
+```
+├── app/          # Expo Router app screens
+├── src/          # Source code
+│   ├── screens/  # UI screens
+│   ├── utils/    # Utility services
+│   ├── types/    # TypeScript types
+│   └── constants/# App constants
+├── scripts/      # Build and validation scripts
+├── config/       # Configuration files
+├── docs/         # Documentation
+└── metadata/     # F-Droid metadata
+```
+
+## Development
+
+- **Start dev server**: `bun expo start`
+- **Build Android**: `bun run android`
+- **Build for F-Droid**: `./scripts/build-fdroid.sh`
+- **Validate F-Droid**: `./scripts/validate-fdroid.sh`
+
+## License
+
+MIT - See [docs/LICENSE](./docs/LICENSE)
