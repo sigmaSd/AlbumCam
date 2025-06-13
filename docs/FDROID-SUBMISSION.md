@@ -21,12 +21,12 @@ Before submitting to F-Droid, ensure all the following are complete:
 Ensure your repository meets F-Droid requirements:
 
 ```bash
-# Make sure you're on the fdroid-publish branch
-git checkout fdroid-publish
+# Make sure you're on the master branch
+git checkout master
 
 # Create a release tag
-git tag -a v1.3.0 -m "Release v1.3.0 for F-Droid submission"
-git push origin v1.3.0
+git tag -a v1.3.1 -m "Release v1.3.1 for F-Droid submission"
+git push origin v1.3.1
 
 # Verify GitHub Actions build passes
 # Check: https://github.com/sigmaSd/AlbumCam/actions
@@ -70,8 +70,8 @@ A simple camera app that lets you instantly switch between different photo album
 - ✅ GitHub Actions build automation with APK releases
 
 **Additional Info:**
-- Latest version: v1.3.0 with improved device compatibility
-- The app is in the `fdroid-publish` branch
+- Latest version: v1.3.1 with critical core functionality fixes
+- The app is in the `master` branch
 - F-Droid metadata is in `metadata/` directory
 - Build tested with EAS and GitHub Actions
 - All source code available under MIT license
@@ -96,7 +96,7 @@ F-Droid maintainers will test your app using this process:
 # They will clone your repo
 git clone https://github.com/sigmaSd/AlbumCam.git
 cd AlbumCam
-git checkout fdroid-publish
+git checkout master
 
 # Install dependencies
 sudo apt-get update
@@ -181,5 +181,5 @@ For questions about this submission:
 ## Repository URLs
 
 - **Main Repository:** https://github.com/sigmaSd/AlbumCam
-- **F-Droid Branch:** https://github.com/sigmaSd/AlbumCam/tree/fdroid-publish
-- **F-Droid Metadata:** https://github.com/sigmaSd/AlbumCam/tree/fdroid-publish/metadata
+- **F-Droid Branch:** https://github.com/sigmaSd/AlbumCam/tree/master
+- **F-Droid Metadata:** https://github.com/sigmaSd/AlbumCam/tree/master/metadata
