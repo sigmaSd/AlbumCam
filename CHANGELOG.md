@@ -5,7 +5,7 @@ All notable changes to AlbumCam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2024-12-19
+## [1.3.0]
 
 ### Improved
 - **Device Compatibility**: Removed haptic feedback for better compatibility across all Android devices
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated build process for improved F-Droid compatibility
 - Enhanced GitHub Actions workflow with automatic APK releases
 
-## [1.2.0] - 2024-12-18
+## [1.2.0]
 
 ### Added
 - Swipe gesture support for quick album switching (left/right swipes)
@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Camera permission handling improvements
 - Media library integration reliability
 
-## [1.1.0] - 2024-12-17
+## [1.1.0]
 
 ### Added
 - Album photo count display for each album
@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Photo saving reliability improvements
 - UI rendering issues on some device sizes
 
-## [1.0.0] - 2024-12-16
+## [1.0.0]
 
 ### Added
 - Initial release of AlbumCam
