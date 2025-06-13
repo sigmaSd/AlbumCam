@@ -349,79 +349,79 @@ export const CameraScreen: React.FC = () => {
                 enableTorch={flash === "on"}
                 zoom={zoom}
                 onTouchEnd={toggleControlsVisibility}
-              >
-                {controlsVisible && (
-                  <BlurView
-                    intensity={20}
-                    style={styles.cameraControlsContainer}
-                  >
-                    <View style={styles.topControls}>
-                      <TouchableOpacity
+              />
+
+              {controlsVisible && (
+                <BlurView
+                  intensity={20}
+                  style={styles.cameraControlsContainer}
+                >
+                  <View style={styles.topControls}>
+                    <TouchableOpacity
+                      style={[
+                        styles.controlButton,
+                        flash === "on" && styles.activeControl,
+                      ]}
+                      onPress={toggleFlash}
+                    >
+                      <Text
                         style={[
-                          styles.controlButton,
-                          flash === "on" && styles.activeControl,
+                          styles.controlButtonText,
+                          flash === "on" && styles.activeControlText,
                         ]}
-                        onPress={toggleFlash}
                       >
-                        <Text
-                          style={[
-                            styles.controlButtonText,
-                            flash === "on" && styles.activeControlText,
-                          ]}
-                        >
-                          {flash === "on" ? "⚡" : "⚡"}
-                        </Text>
-                      </TouchableOpacity>
+                        {flash === "on" ? "⚡" : "⚡"}
+                      </Text>
+                    </TouchableOpacity>
 
-                      <View style={styles.zoomIndicator}>
-                        <Text style={styles.zoomText}>
-                          {(zoom * 10 + 1).toFixed(1)}x
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        style={styles.controlButton}
-                        onPress={toggleCameraFacing}
-                      >
-                        <Text style={styles.controlButtonText}>🔄</Text>
-                      </TouchableOpacity>
+                    <View style={styles.zoomIndicator}>
+                      <Text style={styles.zoomText}>
+                        {(zoom * 10 + 1).toFixed(1)}x
+                      </Text>
                     </View>
 
-                    <View style={styles.sideControls}>
-                      <TouchableOpacity
-                        style={styles.zoomButton}
-                        onPress={zoomIn}
-                        disabled={zoom >= CAMERA_CONFIG.MAX_ZOOM}
+                    <TouchableOpacity
+                      style={styles.controlButton}
+                      onPress={toggleCameraFacing}
+                    >
+                      <Text style={styles.controlButtonText}>🔄</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.sideControls}>
+                    <TouchableOpacity
+                      style={styles.zoomButton}
+                      onPress={zoomIn}
+                      disabled={zoom >= CAMERA_CONFIG.MAX_ZOOM}
+                    >
+                      <Text
+                        style={[
+                          styles.zoomButtonText,
+                          zoom >= CAMERA_CONFIG.MAX_ZOOM &&
+                          styles.disabledText,
+                        ]}
                       >
-                        <Text
-                          style={[
-                            styles.zoomButtonText,
-                            zoom >= CAMERA_CONFIG.MAX_ZOOM &&
-                            styles.disabledText,
-                          ]}
-                        >
-                          +
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.zoomButton}
-                        onPress={zoomOut}
-                        disabled={zoom <= CAMERA_CONFIG.MIN_ZOOM}
+                        +
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.zoomButton}
+                      onPress={zoomOut}
+                      disabled={zoom <= CAMERA_CONFIG.MIN_ZOOM}
+                    >
+                      <Text
+                        style={[
+                          styles.zoomButtonText,
+                          zoom <= CAMERA_CONFIG.MIN_ZOOM &&
+                          styles.disabledText,
+                        ]}
                       >
-                        <Text
-                          style={[
-                            styles.zoomButtonText,
-                            zoom <= CAMERA_CONFIG.MIN_ZOOM &&
-                            styles.disabledText,
-                          ]}
-                        >
-                          −
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </BlurView>
-                )}
-              </CameraView>
+                        −
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </BlurView>
+              )}
             </Animated.View>
 
             <BlurView intensity={50} style={styles.bottomContainer}>
@@ -672,6 +672,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    zIndex: 10,
   },
   topControls: {
     flexDirection: "row",
