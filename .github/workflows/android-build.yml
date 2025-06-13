@@ -103,7 +103,7 @@ jobs:
             4. Grant camera and storage permissions when prompted
 
             ### ✨ What's New
-            See the [changelog](https://github.com/sigmaSd/AlbumCam/blob/main/CHANGELOG.md) for detailed changes.
+            See the [changelog](https://github.com/sigmaSd/AlbumCam/blob/master/CHANGELOG.md) for detailed changes.
 
             ### 🔒 Security
             This APK is automatically built from source code using GitHub Actions. You can verify the build process in the [Actions tab](https://github.com/sigmaSd/AlbumCam/actions).
