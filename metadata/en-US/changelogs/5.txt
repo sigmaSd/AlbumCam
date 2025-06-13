@@ -1,0 +1,21 @@
+Version 1.3.1 - Critical Core Functionality Fix
+
+🔧 Critical Fixes:
+• FIXED: Photos now actually save to selected albums instead of only camera roll
+• FIXED: Album switching now properly changes where photos are saved
+• FIXED: Album photo counts now show actual album-specific counts
+• FIXED: Removed confirmation popups when saving photos to albums
+
+🐛 Bug Fixes:
+• Core photo saving functionality was broken - photos were only saving to camera roll
+• Album selection had no effect on where photos were stored
+• Photo counts were showing total count instead of album-specific counts
+• Annoying confirmation dialogs when moving photos between albums
+
+🏗️ Technical Improvements:
+• Fixed savePhotoToAlbum function to properly use selected album
+• Updated MediaLibrary operations to use copy instead of move
+• Enhanced album creation and management functionality
+• Better error handling for album operations
+
+This is a critical bug fix release that restores the main functionality of the app. All users should update immediately as the core album feature was not working in previous versions.

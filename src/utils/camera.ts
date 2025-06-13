@@ -14,7 +14,7 @@ export class CameraService {
 
   static async savePhotoToAlbum(
     photoUri: string,
-    _location: Location,
+    location: Location,
   ): Promise<MediaLibrary.Asset | null> {
     try {
       const hasPermission = await this.ensurePermissions();
@@ -22,12 +22,35 @@ export class CameraService {
         throw new Error("Media library permission not granted");
       }
 
-      // Create asset from photo - this saves to camera roll
+      // Create asset from photo - this saves to camera roll first
       const asset = await MediaLibrary.createAssetAsync(photoUri);
 
-      // For non-default locations, we don't modify existing assets
-      // Instead we let the user organize manually to avoid Expo Go permissions
-      // The photo is still saved to the camera roll
+      // For non-default locations, try to create/use the specific album
+      if (location.id !== "1") { // Not the default album
+        try {
+          // Check if album exists
+          let album = await MediaLibrary.getAlbumAsync(location.name);
+
+          // Create album if it doesn't exist
+          if (!album) {
+            album = await MediaLibrary.createAlbumAsync(
+              location.name,
+              asset,
+              true,
+            );
+          } else {
+            // Add asset to existing album
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album, true);
+          }
+
+          console.log(`Photo saved to album: ${location.name}`);
+        } catch (albumError) {
+          console.warn(
+            `Could not save to album ${location.name}, saved to camera roll:`,
+            albumError,
+          );
+        }
+      }
 
       return asset;
     } catch (error) {
@@ -36,34 +59,66 @@ export class CameraService {
     }
   }
 
-  static addAssetToAlbum(
-    _asset: MediaLibrary.Asset,
+  static async addAssetToAlbum(
+    asset: MediaLibrary.Asset,
     albumName: string,
-  ): void {
+  ): Promise<void> {
     try {
-      // In Expo Go, we avoid modifying assets to prevent permission popups
-      // Photos are saved to camera roll and users can organize manually
-      console.log(`Photo saved to camera roll (album: ${albumName})`);
+      const hasPermission = await this.ensurePermissions();
+      if (!hasPermission) {
+        throw new Error("Media library permission not granted");
+      }
+
+      // Check if album exists
+      let album = await MediaLibrary.getAlbumAsync(albumName);
+
+      // Create album if it doesn't exist
+      if (!album) {
+        album = await MediaLibrary.createAlbumAsync(albumName, asset, true);
+      } else {
+        // Add asset to existing album
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, true);
+      }
+
+      console.log(`Asset added to album: ${albumName}`);
     } catch (error) {
       console.error("Error adding asset to album:", error);
       throw error;
     }
   }
 
-  static async getAlbumPhotoCount(_albumName: string): Promise<number> {
+  static async getAlbumPhotoCount(albumName: string): Promise<number> {
     try {
       const hasPermission = await this.ensurePermissions();
       if (!hasPermission) {
         return 0;
       }
 
-      // In Expo Go, just return total photo count for all albums
-      // to avoid permission issues with accessing specific albums
-      const { totalCount } = await MediaLibrary.getAssetsAsync({
-        first: 1,
-        mediaType: MediaLibrary.MediaType.photo,
-      });
-      return totalCount;
+      // For default album, return total photo count
+      if (albumName === "Default") {
+        const { totalCount } = await MediaLibrary.getAssetsAsync({
+          first: 1,
+          mediaType: MediaLibrary.MediaType.photo,
+        });
+        return totalCount;
+      }
+
+      // For specific albums, try to get the actual album count
+      try {
+        const album = await MediaLibrary.getAlbumAsync(albumName);
+        if (album) {
+          return album.assetCount;
+        }
+        return 0;
+      } catch (albumError) {
+        console.warn(`Could not get count for album ${albumName}:`, albumError);
+        // Fallback to total count
+        const { totalCount } = await MediaLibrary.getAssetsAsync({
+          first: 1,
+          mediaType: MediaLibrary.MediaType.photo,
+        });
+        return totalCount;
+      }
     } catch (error) {
       console.error("Error getting album photo count:", error);
       return 0;

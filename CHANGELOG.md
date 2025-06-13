@@ -5,6 +5,20 @@ All notable changes to AlbumCam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1]
+
+### Fixed
+- **CRITICAL**: Fixed core photo saving functionality - photos now actually save to selected albums instead of only camera roll
+- **User Experience**: Set copyAsset parameter to true in all MediaLibrary operations to prevent confirmation popups
+- **Album Functionality**: Photos taken in different albums now properly save to those specific albums
+- **Photo Counts**: Album photo counts now show actual album-specific counts instead of total photo count
+
+### Technical
+- Fixed savePhotoToAlbum function to properly use the location parameter
+- Updated all MediaLibrary.addAssetsToAlbumAsync calls to use copy instead of move
+- Improved error handling for album operations
+- Enhanced album creation and management functionality
+
 ## [1.3.0]
 
 ### Improved
