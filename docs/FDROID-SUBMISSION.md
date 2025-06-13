@@ -44,7 +44,7 @@ There are two ways to submit to F-Droid:
 
 ```
 **App Name:** AlbumCam
-**Package ID:** com.sigmacool.albumcam
+**Package ID:** com.sigmasd.albumcam
 **Homepage:** https://github.com/sigmaSd/AlbumCam
 **Source Code:** https://github.com/sigmaSd/AlbumCam
 **Issue Tracker:** https://github.com/sigmaSd/AlbumCam/issues
@@ -83,8 +83,8 @@ A simple camera app that lets you instantly switch between different photo album
 1. Fork https://gitlab.com/fdroid/fdroiddata
 2. Copy your metadata to the forked repository:
    ```bash
-   cp -r metadata/com.sigmacool.albumcam.yml /path/to/fdroiddata/metadata/
-   cp -r metadata/en-US/ /path/to/fdroiddata/metadata/com.sigmacool.albumcam/
+   cp -r metadata/com.sigmasd.albumcam.yml /path/to/fdroiddata/metadata/
+   cp -r metadata/en-US/ /path/to/fdroiddata/metadata/com.sigmasd.albumcam/
    ```
 3. Create a merge request
 
@@ -144,7 +144,7 @@ npx expo prebuild --platform android --clean
 - Update metadata to match exact license name
 
 **Issue: Build configuration errors**
-- Verify `metadata/com.sigmacool.albumcam.yml` syntax
+- Verify `metadata/com.sigmasd.albumcam.yml` syntax
 - Test build process locally with F-Droid tools
 
 ### 5. Post-Submission

@@ -100,7 +100,7 @@ The app requests the following Android permissions:
 ## Metadata Structure
 
 The F-Droid metadata is located in:
-- `metadata/com.sigmacool.albumcam.yml` - Main F-Droid configuration
+- `metadata/com.sigmasd.albumcam.yml` - Main F-Droid configuration
 - `metadata/en-US/` - Localized descriptions and changelogs
 
 ## GitHub Actions

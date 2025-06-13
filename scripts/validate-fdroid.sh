@@ -56,7 +56,7 @@ else
     print_status "FAIL" "README.md missing"
 fi
 
-if [ -f "metadata/com.sigmacool.albumcam.yml" ]; then
+if [ -f "metadata/com.sigmasd.albumcam.yml" ]; then
     print_status "PASS" "F-Droid metadata file exists"
 else
     print_status "FAIL" "F-Droid metadata file missing"
@@ -147,7 +147,7 @@ if [ -d "android" ]; then
         fi
 
         # Check application ID
-        if grep -q "com.sigmacool.albumcam" android/app/src/main/AndroidManifest.xml; then
+        if grep -q "com.sigmasd.albumcam" android/app/src/main/AndroidManifest.xml; then
             print_status "PASS" "Correct application ID found in manifest"
         else
             print_status "WARN" "Application ID may not match expected value"
@@ -169,27 +169,27 @@ echo ""
 echo "4. F-Droid Metadata Validation"
 echo "============================="
 
-if [ -f "metadata/com.sigmacool.albumcam.yml" ]; then
+if [ -f "metadata/com.sigmasd.albumcam.yml" ]; then
     # Check for required fields
-    if grep -q "Categories:" metadata/com.sigmacool.albumcam.yml; then
+    if grep -q "Categories:" metadata/com.sigmasd.albumcam.yml; then
         print_status "PASS" "Categories field present"
     else
         print_status "FAIL" "Categories field missing"
     fi
 
-    if grep -q "License:" metadata/com.sigmacool.albumcam.yml; then
+    if grep -q "License:" metadata/com.sigmasd.albumcam.yml; then
         print_status "PASS" "License field present"
     else
         print_status "FAIL" "License field missing"
     fi
 
-    if grep -q "SourceCode:" metadata/com.sigmacool.albumcam.yml; then
+    if grep -q "SourceCode:" metadata/com.sigmasd.albumcam.yml; then
         print_status "PASS" "SourceCode field present"
     else
         print_status "FAIL" "SourceCode field missing"
     fi
 
-    if grep -q "Builds:" metadata/com.sigmacool.albumcam.yml; then
+    if grep -q "Builds:" metadata/com.sigmasd.albumcam.yml; then
         print_status "PASS" "Builds section present"
     else
         print_status "FAIL" "Builds section missing"

@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sigmacool.albumcam",
+      "package": "com.sigmasd.albumcam",
       "versionCode": 5,
       "allowBackup": false
     },
@@ -57,6 +57,6 @@
         "projectId": "b72420f2-5ea9-4119-aa2f-3371414f010f"
       }
     },
-    "owner": "sigmacool"
+    "owner": "sigmasd"
   }
 }
