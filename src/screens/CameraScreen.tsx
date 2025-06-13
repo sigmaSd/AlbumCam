@@ -517,8 +517,8 @@ export const CameraScreen: React.FC = () => {
                   <View style={styles.captureButtonInner} />
                 </TouchableOpacity>
                 <Text style={styles.captureHint}>
-                  Tap to capture • Swipe left/right to switch albums • Double
-                  tap screen to hide controls
+                  Tap to capture • Photos saved to camera roll • Swipe
+                  left/right to switch albums • Double tap to hide controls
                 </Text>
               </View>
 
@@ -669,14 +669,16 @@ const styles = StyleSheet.create({
     top: 50,
     left: 20,
     right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    bottom: 0,
     zIndex: 10,
+    pointerEvents: "box-none",
   },
   topControls: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 10,
   },
   controlButton: {
     width: 50,
@@ -710,6 +712,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   sideControls: {
+    position: "absolute",
+    right: 0,
+    top: "50%",
+    transform: [{ translateY: -50 }],
     alignItems: "center",
   },
   zoomButton: {
