@@ -2,6 +2,8 @@
 
 A streamlined camera application for instant photo album organization.
 
+<img style="width:30%" src="./docs/screenshot.png" />
+
 ## Features
 
 - 📸 Take photos and organize them into albums instantly
