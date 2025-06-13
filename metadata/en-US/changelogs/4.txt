@@ -1,0 +1,22 @@
+Version 1.3.0 - Improved Compatibility & Performance
+
+🔧 Improvements:
+• Removed haptic feedback for better device compatibility
+• Fixed zoom functionality - now works smoothly from the first step
+• Improved zoom increments for more noticeable changes
+• Better error handling for media library permissions
+• Enhanced camera controls responsiveness
+
+🐛 Bug Fixes:
+• Fixed zoom only working at high levels (2.2x+)
+• Resolved media library permission errors on some devices
+• Improved camera permission handling
+• Fixed potential crashes on devices without haptic support
+
+🏗️ Technical:
+• Cleaner codebase with removed haptic dependencies
+• Better compatibility across different Android devices
+• Improved error logging and user feedback
+• Updated build process for F-Droid compatibility
+
+This release focuses on device compatibility and user experience improvements, ensuring the app works consistently across all Android devices.

@@ -25,8 +25,8 @@ Ensure your repository meets F-Droid requirements:
 git checkout fdroid-publish
 
 # Create a release tag
-git tag -a v1.0.0 -m "Release v1.0.0 for F-Droid submission"
-git push origin v1.0.0
+git tag -a v1.3.0 -m "Release v1.3.0 for F-Droid submission"
+git push origin v1.3.0
 
 # Verify GitHub Actions build passes
 # Check: https://github.com/sigmaSd/AlbumCam/actions
@@ -55,8 +55,9 @@ A simple camera app that lets you instantly switch between different photo album
 
 **Key Features:**
 - Take photos and save directly to different albums
-- Quick album switching via bottom menu
-- Full camera controls (flash, zoom, front/back camera)
+- Quick album switching via swipe gestures and bottom menu
+- Full camera controls (flash, improved zoom, front/back camera)
+- Enhanced device compatibility (haptic-free for universal support)
 - Privacy-focused - no data collection or network requests
 - Persistent local storage
 
@@ -66,13 +67,15 @@ A simple camera app that lets you instantly switch between different photo album
 - ✅ No telemetry or analytics
 - ✅ Builds successfully with provided build scripts
 - ✅ F-Droid metadata included in repository
-- ✅ GitHub Actions build automation
+- ✅ GitHub Actions build automation with APK releases
 
 **Additional Info:**
+- Latest version: v1.3.0 with improved device compatibility
 - The app is in the `fdroid-publish` branch
 - F-Droid metadata is in `metadata/` directory
 - Build tested with EAS and GitHub Actions
 - All source code available under MIT license
+- Automatic APK releases via GitHub Actions
 ```
 
 #### Option B: Direct Merge Request (for experienced contributors)

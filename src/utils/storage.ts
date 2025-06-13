@@ -52,43 +52,14 @@ export class StorageService {
     }
   }
 
-  static async getHapticEnabled(): Promise<boolean> {
-    try {
-      const savedHapticEnabled = await AsyncStorage.getItem(
-        STORAGE_KEYS.HAPTIC_ENABLED,
-      );
-      if (savedHapticEnabled !== null) {
-        return JSON.parse(savedHapticEnabled);
-      }
-      return true; // Default to enabled
-    } catch (error) {
-      console.error("Error loading haptic setting:", error);
-      return true;
-    }
-  }
-
-  static async saveHapticEnabled(enabled: boolean): Promise<void> {
-    try {
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.HAPTIC_ENABLED,
-        JSON.stringify(enabled),
-      );
-    } catch (error) {
-      console.error("Error saving haptic setting:", error);
-      throw error;
-    }
-  }
-
   static async saveAllData(
     locations: Location[],
     selectedLocationId: string,
-    isHapticEnabled: boolean,
   ): Promise<void> {
     try {
       await Promise.all([
         this.saveLocations(locations),
         this.saveSelectedLocationId(selectedLocationId),
-        this.saveHapticEnabled(isHapticEnabled),
       ]);
     } catch (error) {
       console.error("Error saving all data:", error);
@@ -99,27 +70,23 @@ export class StorageService {
   static async loadAllData(): Promise<{
     locations: Location[];
     selectedLocationId: string;
-    isHapticEnabled: boolean;
   }> {
     try {
-      const [locations, selectedLocationId, isHapticEnabled] = await Promise
+      const [locations, selectedLocationId] = await Promise
         .all([
           this.getLocations(),
           this.getSelectedLocationId(),
-          this.getHapticEnabled(),
         ]);
 
       return {
         locations,
         selectedLocationId,
-        isHapticEnabled,
       };
     } catch (error) {
       console.error("Error loading all data:", error);
       return {
         locations: [DEFAULT_LOCATION],
         selectedLocationId: DEFAULT_LOCATION.id,
-        isHapticEnabled: true,
       };
     }
   }

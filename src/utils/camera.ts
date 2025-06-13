@@ -52,6 +52,11 @@ export class CameraService {
 
   static async getAlbumPhotoCount(_albumName: string): Promise<number> {
     try {
+      const hasPermission = await this.ensurePermissions();
+      if (!hasPermission) {
+        return 0;
+      }
+
       // In Expo Go, just return total photo count for all albums
       // to avoid permission issues with accessing specific albums
       const { totalCount } = await MediaLibrary.getAssetsAsync({
@@ -67,6 +72,11 @@ export class CameraService {
 
   static async getAllAvailableAlbums(): Promise<MediaLibrary.Album[]> {
     try {
+      const hasPermission = await this.ensurePermissions();
+      if (!hasPermission) {
+        return [];
+      }
+
       const albums = await MediaLibrary.getAlbumsAsync();
       return albums;
     } catch (error) {
@@ -130,6 +140,11 @@ export class CameraService {
 
     // Check against system albums
     try {
+      const hasPermission = await this.ensurePermissions();
+      if (!hasPermission) {
+        return false;
+      }
+
       const album = await MediaLibrary.getAlbumAsync(name);
       return album !== null;
     } catch (error) {

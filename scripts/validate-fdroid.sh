@@ -283,7 +283,7 @@ if [ $FAILED -eq 0 ]; then
     echo ""
     echo "Next steps:"
     echo "1. Test the release build: ./build-fdroid.sh"
-    echo "2. Create a release tag: git tag -a v1.0.0 -m 'Release v1.0.0'"
+    echo "2. Create a release tag: git tag -a v1.3.0 -m 'Release v1.3.0'"
     echo "3. Push to GitHub: git push origin fdroid-publish --tags"
     echo "4. Submit to F-Droid using FDROID-SUBMISSION.md guide"
 else

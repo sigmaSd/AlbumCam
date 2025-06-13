@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { type CameraType, CameraView, useCameraPermissions } from "expo-camera";
+import * as MediaLibrary from "expo-media-library";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import {
@@ -23,7 +24,6 @@ import {
 import { runOnJS } from "react-native-reanimated";
 
 import { StorageService } from "../utils/storage.ts";
-import { HapticService } from "../utils/haptics.ts";
 import { CameraService } from "../utils/camera.ts";
 import { CAMERA_CONFIG, DEFAULT_LOCATION } from "../constants";
 import type { Location } from "../types/index.ts";
@@ -36,6 +36,8 @@ export const CameraScreen: React.FC = () => {
   const [flash, setFlash] = useState<"off" | "on">("off");
   const [zoom, setZoom] = useState(CAMERA_CONFIG.DEFAULT_ZOOM);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary
+    .usePermissions();
   const [camera, setCamera] = useState<CameraView | null>(null);
 
   // Animation states
@@ -57,7 +59,6 @@ export const CameraScreen: React.FC = () => {
     useState(false);
   // deno-lint-ignore no-explicit-any
   const [availableAlbums, setAvailableAlbums] = useState<any[]>([]);
-  const [isHapticEnabled, setIsHapticEnabled] = useState(true);
 
   // Load saved data when component mounts
   useEffect(() => {
@@ -73,19 +74,13 @@ export const CameraScreen: React.FC = () => {
   // Save data whenever locations or selectedLocationId changes
   useEffect(() => {
     saveData();
-  }, [locations, selectedLocationId, isHapticEnabled]);
-
-  // Initialize haptic service
-  useEffect(() => {
-    HapticService.setEnabled(isHapticEnabled);
-  }, [isHapticEnabled]);
+  }, [locations, selectedLocationId]);
 
   const loadSavedData = async () => {
     try {
       const data = await StorageService.loadAllData();
       setLocations(data.locations);
       setSelectedLocationId(data.selectedLocationId);
-      setIsHapticEnabled(data.isHapticEnabled);
     } catch (error) {
       console.error("Error loading saved data:", error);
     }
@@ -96,7 +91,6 @@ export const CameraScreen: React.FC = () => {
       await StorageService.saveAllData(
         locations,
         selectedLocationId,
-        isHapticEnabled,
       );
     } catch (error) {
       console.error("Error saving data:", error);
@@ -105,6 +99,12 @@ export const CameraScreen: React.FC = () => {
 
   const updatePhotoCount = async () => {
     try {
+      // Only try to get photo count if we have media library permissions
+      if (!mediaLibraryPermission?.granted) {
+        setPhotoCount(0);
+        return;
+      }
+
       const selectedLocation = locations.find((l) =>
         l.id === selectedLocationId
       );
@@ -116,6 +116,7 @@ export const CameraScreen: React.FC = () => {
       }
     } catch (error) {
       console.error("Error updating photo count:", error);
+      setPhotoCount(0);
     }
   };
 
@@ -125,7 +126,6 @@ export const CameraScreen: React.FC = () => {
     );
     const nextIndex = (currentIndex + 1) % locations.length;
     setSelectedLocationId(locations[nextIndex].id);
-    HapticService.albumSwitch();
   };
 
   const switchToPreviousAlbum = () => {
@@ -136,7 +136,6 @@ export const CameraScreen: React.FC = () => {
       ? locations.length - 1
       : currentIndex - 1;
     setSelectedLocationId(locations[prevIndex].id);
-    HapticService.albumSwitch();
   };
 
   const panGesture = Gesture.Pan()
@@ -158,10 +157,16 @@ export const CameraScreen: React.FC = () => {
 
   const fetchAvailableAlbums = async () => {
     try {
+      // Request media library permission if not granted
+      if (!mediaLibraryPermission?.granted) {
+        await requestMediaLibraryPermission();
+      }
+
       const albums = await CameraService.getAllAvailableAlbums();
       setAvailableAlbums(albums);
     } catch (error) {
       console.error("Error fetching albums:", error);
+      setAvailableAlbums([]);
     }
   };
 
@@ -193,12 +198,10 @@ export const CameraScreen: React.FC = () => {
 
   const toggleCameraFacing = () => {
     setFacing((current) => (current === "back" ? "front" : "back"));
-    HapticService.tap();
   };
 
   const toggleFlash = () => {
     setFlash((current) => (current === "off" ? "on" : "off"));
-    HapticService.tap();
   };
 
   const zoomIn = () => {
@@ -206,21 +209,18 @@ export const CameraScreen: React.FC = () => {
     setZoom((current: any) =>
       Math.min(current + CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MAX_ZOOM)
     );
-    HapticService.tap();
   };
 
   const zoomOut = () => {
     setZoom((current: number) =>
       Math.max(current - CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MIN_ZOOM)
     );
-    HapticService.tap();
   };
 
   const toggleControlsVisibility = () => {
     const now = Date.now();
     if (now - lastTap < 300) {
       setControlsVisible(!controlsVisible);
-      HapticService.tap();
     }
     setLastTap(now);
   };
@@ -229,8 +229,6 @@ export const CameraScreen: React.FC = () => {
     if (!camera) return;
 
     try {
-      HapticService.photoCapture();
-
       // Shutter animation
       Animated.sequence([
         Animated.timing(shutterAnimation, {
@@ -254,12 +252,10 @@ export const CameraScreen: React.FC = () => {
         if (selectedLocation) {
           await CameraService.savePhotoToAlbum(photo.uri, selectedLocation);
           await updatePhotoCount();
-          HapticService.saveSuccess();
         }
       }
     } catch (error) {
       console.error("Error taking picture:", error);
-      HapticService.saveError();
       Alert.alert("Error", "Failed to take picture. Please try again.");
     }
   };
@@ -292,7 +288,6 @@ export const CameraScreen: React.FC = () => {
     setSelectedLocationId(newLocation.id);
     setNewLocationName("");
     setIsAddLocationModalVisible(false);
-    HapticService.success();
   };
 
   const removeLocation = (locationId: string) => {
@@ -304,8 +299,6 @@ export const CameraScreen: React.FC = () => {
     if (selectedLocationId === locationId) {
       setSelectedLocationId("1");
     }
-
-    HapticService.albumDelete();
   };
 
   // deno-lint-ignore no-explicit-any
@@ -319,7 +312,6 @@ export const CameraScreen: React.FC = () => {
     setLocations([...locations, newLocation]);
     setSelectedLocationId(newLocation.id);
     setIsAlbumSelectionModalVisible(false);
-    HapticService.success();
   };
 
   return (
@@ -352,11 +344,9 @@ export const CameraScreen: React.FC = () => {
               />
 
               {controlsVisible && (
-                <BlurView
-                  intensity={20}
-                  style={styles.cameraControlsContainer}
-                >
-                  <View style={styles.topControls}>
+                <>
+                  {/* Top Controls Bar */}
+                  <View style={styles.topControlsBar}>
                     <TouchableOpacity
                       style={[
                         styles.controlButton,
@@ -376,7 +366,7 @@ export const CameraScreen: React.FC = () => {
 
                     <View style={styles.zoomIndicator}>
                       <Text style={styles.zoomText}>
-                        {(zoom * 10 + 1).toFixed(1)}x
+                        {(zoom * 2 + 1).toFixed(1)}x
                       </Text>
                     </View>
 
@@ -388,6 +378,7 @@ export const CameraScreen: React.FC = () => {
                     </TouchableOpacity>
                   </View>
 
+                  {/* Side Zoom Controls */}
                   <View style={styles.sideControls}>
                     <TouchableOpacity
                       style={styles.zoomButton}
@@ -420,7 +411,7 @@ export const CameraScreen: React.FC = () => {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                </BlurView>
+                </>
               )}
             </Animated.View>
 
@@ -455,12 +446,10 @@ export const CameraScreen: React.FC = () => {
                         styles.selectedLocationButton,
                       ]}
                       onPress={() => {
-                        HapticService.buttonPress();
                         setSelectedLocationId(location.id);
                       }}
                       onLongPress={() => {
                         if (location.id !== "1") {
-                          HapticService.albumDelete();
                           Alert.alert(
                             "Remove Album",
                             `Remove "${location.name}" album?`,
@@ -494,11 +483,9 @@ export const CameraScreen: React.FC = () => {
                 <TouchableOpacity
                   style={styles.addLocationButton}
                   onPress={() => {
-                    HapticService.buttonPress();
                     setIsAddLocationModalVisible(true);
                   }}
                   onLongPress={async () => {
-                    HapticService.medium();
                     await fetchAvailableAlbums();
                     setIsAlbumSelectionModalVisible(true);
                   }}
@@ -520,18 +507,6 @@ export const CameraScreen: React.FC = () => {
                   Tap to capture • Photos saved to camera roll • Swipe
                   left/right to switch albums • Double tap to hide controls
                 </Text>
-              </View>
-
-              {/* Settings */}
-              <View style={styles.settingsContainer}>
-                <TouchableOpacity
-                  style={styles.settingsButton}
-                  onPress={() => setIsHapticEnabled(!isHapticEnabled)}
-                >
-                  <Text style={styles.settingsButtonText}>
-                    {isHapticEnabled ? "🔊" : "🔇"} Haptic
-                  </Text>
-                </TouchableOpacity>
               </View>
             </BlurView>
           </View>
@@ -664,30 +639,26 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
-  cameraControlsContainer: {
+  topControlsBar: {
     position: "absolute",
-    top: 50,
+    top: 60,
     left: 20,
     right: 20,
-    bottom: 0,
-    zIndex: 10,
-    pointerEvents: "box-none",
-  },
-  topControls: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
+    zIndex: 10,
     paddingHorizontal: 10,
   },
   controlButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   activeControl: {
     backgroundColor: "rgba(255, 255, 255, 0.3)",
@@ -700,11 +671,12 @@ const styles = StyleSheet.create({
     color: "#FFD60A",
   },
   zoomIndicator: {
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginHorizontal: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   zoomText: {
     color: "#fff",
@@ -713,19 +685,21 @@ const styles = StyleSheet.create({
   },
   sideControls: {
     position: "absolute",
-    right: 0,
-    top: "50%",
-    transform: [{ translateY: -50 }],
+    right: 20,
+    top: 150,
     alignItems: "center",
+    zIndex: 10,
   },
   zoomButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 5,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   zoomButtonText: {
     fontSize: 18,
@@ -832,24 +806,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     textAlign: "center",
   },
-  settingsContainer: {
-    position: "absolute",
-    top: 50,
-    right: 20,
-    zIndex: 10,
-  },
-  settingsButton: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backdropFilter: "blur(10px)",
-  },
-  settingsButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
+
   modalContainer: {
     flex: 1,
     justifyContent: "center",

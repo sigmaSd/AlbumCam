@@ -1,101 +1,64 @@
-import * as Haptics from "expo-haptics";
-
+// Haptic service disabled - no-op implementation
 export class HapticService {
-  private static isEnabled = true;
+  private static isEnabled = false;
 
-  static setEnabled(enabled: boolean): void {
-    this.isEnabled = enabled;
+  static setEnabled(_enabled: boolean): void {
+    // No-op
   }
 
   static getEnabled(): boolean {
-    return this.isEnabled;
+    return false;
   }
 
   static async light(): Promise<void> {
-    if (!this.isEnabled) return;
-
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    } catch (error) {
-      console.warn("Haptic feedback not available:", error);
-    }
+    // No-op
   }
 
   static async medium(): Promise<void> {
-    if (!this.isEnabled) return;
-
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (error) {
-      console.warn("Haptic feedback not available:", error);
-    }
+    // No-op
   }
 
   static async heavy(): Promise<void> {
-    if (!this.isEnabled) return;
-
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    } catch (error) {
-      console.warn("Haptic feedback not available:", error);
-    }
+    // No-op
   }
 
   static async success(): Promise<void> {
-    if (!this.isEnabled) return;
-
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      console.warn("Haptic feedback not available:", error);
-    }
+    // No-op
   }
 
   static async warning(): Promise<void> {
-    if (!this.isEnabled) return;
-
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    } catch (error) {
-      console.warn("Haptic feedback not available:", error);
-    }
+    // No-op
   }
 
   static async error(): Promise<void> {
-    if (!this.isEnabled) return;
-
-    try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    } catch (error) {
-      console.warn("Haptic feedback not available:", error);
-    }
+    // No-op
   }
 
   static tap(): Promise<void> {
-    return this.light();
+    return Promise.resolve();
   }
 
   static buttonPress(): Promise<void> {
-    return this.light();
+    return Promise.resolve();
   }
 
   static albumSwitch(): Promise<void> {
-    return this.light();
+    return Promise.resolve();
   }
 
   static albumDelete(): Promise<void> {
-    return this.medium();
+    return Promise.resolve();
   }
 
   static photoCapture(): Promise<void> {
-    return this.medium();
+    return Promise.resolve();
   }
 
   static saveSuccess(): Promise<void> {
-    return this.success();
+    return Promise.resolve();
   }
 
   static saveError(): Promise<void> {
-    return this.error();
+    return Promise.resolve();
   }
 }

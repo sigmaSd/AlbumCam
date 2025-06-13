@@ -6,7 +6,7 @@ A streamlined camera application for instant photo album organization.
 
 - 📸 Take photos and organize them into albums instantly
 - ↔️ Swipe left/right to switch between albums while shooting
-- 📳 Configurable haptic feedback
+- 🔍 Improved zoom functionality that works smoothly on all devices
 - 📱 Full camera controls (flash, zoom, front/back camera)
 - 💾 Persistent album settings
 
@@ -21,6 +21,7 @@ bun expo start
 
 All documentation has been moved to the [`docs/`](./docs) directory:
 
+- [Changelog](./CHANGELOG.md) - Version history and release notes
 - [F-Droid README](./docs/README-FDROID.md) - F-Droid specific documentation
 - [F-Droid Submission](./docs/FDROID-SUBMISSION.md) - Submission guidelines
 - [License](./docs/LICENSE) - MIT License
