@@ -1,8 +1,10 @@
-const { withAndroidManifest, withInfoPlist } = require("@expo/config-plugins");
+const { withAndroidManifest, withInfoPlist, withAppBuildGradle } = require(
+  "@expo/config-plugins",
+);
 
 const withReactNativeCamera = (config) => {
   // Add Android permissions
-  config = withAndroidManifest(config, (config) => {
+  config = withAndroidManifest(config, async (config) => {
     const androidManifest = config.modResults;
 
     // Ensure permissions array exists
@@ -58,7 +60,7 @@ const withReactNativeCamera = (config) => {
   });
 
   // Add iOS permissions
-  config = withInfoPlist(config, (config) => {
+  config = withInfoPlist(config, async (config) => {
     const plist = config.modResults;
 
     // Camera usage description
@@ -76,6 +78,41 @@ const withReactNativeCamera = (config) => {
     // Photo library add usage description
     plist.NSPhotoLibraryAddUsageDescription =
       "AlbumCam needs permission to save photos to your photo library.";
+
+    return config;
+  });
+
+  // Add app-level Gradle configuration to force general flavor
+  config = withAppBuildGradle(config, async (config) => {
+    const buildGradle = config.modResults.contents;
+
+    // Check if the configuration is already present
+    if (
+      !buildGradle.includes("missingDimensionStrategy 'react-native-camera'")
+    ) {
+      // Add the missing dimension strategy to force general flavor
+      const androidBlock = `android {
+    defaultConfig {
+        missingDimensionStrategy 'react-native-camera', 'general'
+    }
+}`;
+
+      // Find the existing android block and add the configuration
+      if (buildGradle.includes("android {")) {
+        // Replace the existing android block
+        const updatedBuildGradle = buildGradle.replace(
+          /android\s*\{/,
+          `android {
+    defaultConfig {
+        missingDimensionStrategy 'react-native-camera', 'general'
+    }`,
+        );
+        config.modResults.contents = updatedBuildGradle;
+      } else {
+        // Add new android block if it doesn't exist
+        config.modResults.contents = buildGradle + "\n" + androidBlock + "\n";
+      }
+    }
 
     return config;
   });
