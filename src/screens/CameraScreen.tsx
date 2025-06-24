@@ -25,10 +25,10 @@ import {
 } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
 
-import { StorageService } from "../utils/storage.ts";
-import { CameraService } from "../utils/camera.ts";
+import { StorageService } from "../utils/storage";
+import { CameraService } from "../utils/camera";
 import { CAMERA_CONFIG, DEFAULT_LOCATION } from "../constants";
-import type { Location } from "../types/index.ts";
+import type { Location } from "../types";
 
 const { width } = Dimensions.get("window");
 
@@ -43,6 +43,8 @@ export const CameraScreen: React.FC = () => {
   const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary
     .usePermissions();
   const cameraRef = useRef<RNCamera | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [shouldRenderCamera, setShouldRenderCamera] = useState(false);
 
   // Animation states
   const [shutterAnimation] = useState(new Animated.Value(1));
@@ -67,6 +69,13 @@ export const CameraScreen: React.FC = () => {
     loadSavedData();
     updatePhotoCount();
     checkCameraPermission();
+
+    // Delay camera rendering to ensure React Native bridge is ready
+    const timer = setTimeout(() => {
+      setShouldRenderCamera(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Update photo count when album changes
@@ -256,7 +265,13 @@ export const CameraScreen: React.FC = () => {
   };
 
   const takePicture = async () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || !isCameraReady || !shouldRenderCamera) {
+      Alert.alert(
+        "Camera not ready",
+        "Please wait for the camera to initialize.",
+      );
+      return;
+    }
 
     try {
       // Shutter animation
@@ -370,19 +385,48 @@ export const CameraScreen: React.FC = () => {
                 },
               ]}
             >
-              <RNCamera
-                ref={cameraRef}
-                style={styles.camera}
-                type={facing === "back"
-                  ? RNCamera.Constants.Type.back
-                  : RNCamera.Constants.Type.front}
-                flashMode={flash === "on"
-                  ? RNCamera.Constants.FlashMode.on
-                  : RNCamera.Constants.FlashMode.off}
-                zoom={zoom}
-                captureAudio={false}
-                onTouchEnd={toggleControlsVisibility}
-              />
+              {shouldRenderCamera
+                ? (
+                  <RNCamera
+                    ref={cameraRef}
+                    style={styles.camera}
+                    type={facing === "back"
+                      ? RNCamera.Constants.Type.back
+                      : RNCamera.Constants.Type.front}
+                    flashMode={flash === "on"
+                      ? RNCamera.Constants.FlashMode.on
+                      : RNCamera.Constants.FlashMode.off}
+                    zoom={zoom}
+                    captureAudio={false}
+                    autoFocus={RNCamera.Constants.AutoFocus.on}
+                    onTouchEnd={toggleControlsVisibility}
+                    onCameraReady={() => {
+                      console.log("Camera ready");
+                      setIsCameraReady(true);
+                    }}
+                    onMountError={(error) => {
+                      console.error("Camera mount error:", error);
+                      setIsCameraReady(false);
+                      Alert.alert(
+                        "Camera Error",
+                        "Failed to initialize camera. Please restart the app.",
+                      );
+                    }}
+                  />
+                )
+                : (
+                  <View
+                    style={[styles.camera, {
+                      backgroundColor: "#000",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }]}
+                  >
+                    <Text style={{ color: "#fff", fontSize: 16 }}>
+                      Initializing camera...
+                    </Text>
+                  </View>
+                )}
 
               {controlsVisible && (
                 <>
