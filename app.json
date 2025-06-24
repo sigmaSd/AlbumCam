@@ -18,7 +18,13 @@
       },
       "package": "com.sigmasd.albumcam",
       "versionCode": 5,
-      "allowBackup": false
+      "allowBackup": false,
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",

@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
   Dimensions,
   Modal,
+  PermissionsAndroid,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { type CameraType, CameraView, useCameraPermissions } from "expo-camera";
+import { RNCamera } from "react-native-camera";
 import * as MediaLibrary from "expo-media-library";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
@@ -32,21 +34,21 @@ const { width } = Dimensions.get("window");
 
 export const CameraScreen: React.FC = () => {
   // Camera state
-  const [facing, setFacing] = useState<CameraType>("back");
+  const [facing, setFacing] = useState<"back" | "front">("back");
   const [flash, setFlash] = useState<"off" | "on">("off");
   const [zoom, setZoom] = useState(CAMERA_CONFIG.DEFAULT_ZOOM);
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [cameraPermission, setCameraPermission] = useState<boolean | null>(
+    null,
+  );
   const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary
     .usePermissions();
-  const [camera, setCamera] = useState<CameraView | null>(null);
+  const cameraRef = useRef<RNCamera | null>(null);
 
   // Animation states
   const [shutterAnimation] = useState(new Animated.Value(1));
   const [controlsVisible, setControlsVisible] = useState(true);
   const [lastTap, setLastTap] = useState(0);
   const [photoCount, setPhotoCount] = useState(0);
-
-  // No gesture refs needed with new API
 
   // Location buttons state
   const [locations, setLocations] = useState<Location[]>([DEFAULT_LOCATION]);
@@ -64,6 +66,7 @@ export const CameraScreen: React.FC = () => {
   useEffect(() => {
     loadSavedData();
     updatePhotoCount();
+    checkCameraPermission();
   }, []);
 
   // Update photo count when album changes
@@ -75,6 +78,34 @@ export const CameraScreen: React.FC = () => {
   useEffect(() => {
     saveData();
   }, [locations, selectedLocationId]);
+
+  const checkCameraPermission = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: "Camera Permission",
+            message: "AlbumCam needs access to your camera to take photos.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          },
+        );
+        setCameraPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+      } catch (err) {
+        console.warn(err);
+        setCameraPermission(false);
+      }
+    } else {
+      // iOS permissions are handled by react-native-camera automatically
+      setCameraPermission(true);
+    }
+  };
+
+  const requestCameraPermission = async () => {
+    await checkCameraPermission();
+  };
 
   const loadSavedData = async () => {
     try {
@@ -171,11 +202,11 @@ export const CameraScreen: React.FC = () => {
   };
 
   // Handle missing permissions
-  if (!cameraPermission) {
+  if (cameraPermission === null) {
     return <View style={styles.container} />;
   }
 
-  if (!cameraPermission.granted) {
+  if (!cameraPermission) {
     return (
       <View style={styles.permissionContainer}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
@@ -226,7 +257,7 @@ export const CameraScreen: React.FC = () => {
   };
 
   const takePicture = async () => {
-    if (!camera) return;
+    if (!cameraRef.current) return;
 
     try {
       // Shutter animation
@@ -243,7 +274,13 @@ export const CameraScreen: React.FC = () => {
         }),
       ]).start();
 
-      const photo = await camera.takePictureAsync();
+      const options = {
+        quality: 0.8,
+        base64: false,
+        skipProcessing: false,
+      };
+
+      const photo = await cameraRef.current.takePictureAsync(options);
 
       if (photo) {
         const selectedLocation = locations.find((l) =>
@@ -334,12 +371,17 @@ export const CameraScreen: React.FC = () => {
                 },
               ]}
             >
-              <CameraView
+              <RNCamera
+                ref={cameraRef}
                 style={styles.camera}
-                facing={facing}
-                ref={(ref) => setCamera(ref)}
-                enableTorch={flash === "on"}
+                type={facing === "back"
+                  ? RNCamera.Constants.Type.back
+                  : RNCamera.Constants.Type.front}
+                flashMode={flash === "on"
+                  ? RNCamera.Constants.FlashMode.on
+                  : RNCamera.Constants.FlashMode.off}
                 zoom={zoom}
+                captureAudio={false}
                 onTouchEnd={toggleControlsVisibility}
               />
 
@@ -619,14 +661,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#ccc",
     textAlign: "center",
-    lineHeight: 24,
     marginBottom: 32,
+    lineHeight: 24,
   },
   permissionButton: {
     backgroundColor: "#007AFF",
     paddingHorizontal: 32,
     paddingVertical: 16,
-    borderRadius: 25,
+    borderRadius: 12,
   },
   permissionButtonText: {
     color: "#fff",
@@ -642,23 +684,21 @@ const styles = StyleSheet.create({
   topControlsBar: {
     position: "absolute",
     top: 60,
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    zIndex: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
+    zIndex: 1,
   },
   controlButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   activeControl: {
     backgroundColor: "rgba(255, 255, 255, 0.3)",
@@ -668,15 +708,13 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   activeControlText: {
-    color: "#FFD60A",
+    color: "#FFD700",
   },
   zoomIndicator: {
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
   },
   zoomText: {
     color: "#fff",
@@ -686,56 +724,50 @@ const styles = StyleSheet.create({
   sideControls: {
     position: "absolute",
     right: 20,
-    top: 150,
-    alignItems: "center",
-    zIndex: 10,
+    top: "50%",
+    transform: [{ translateY: -50 }],
+    zIndex: 1,
   },
   zoomButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   zoomButtonText: {
-    fontSize: 18,
+    fontSize: 24,
+    fontWeight: "bold",
     color: "#fff",
-    fontWeight: "600",
   },
   disabledText: {
     color: "#666",
   },
   bottomContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingTop: 20,
     paddingBottom: 40,
     paddingHorizontal: 20,
   },
   currentAlbumContainer: {
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   currentAlbumLabel: {
+    fontSize: 14,
     color: "#ccc",
-    fontSize: 12,
-    marginBottom: 5,
+    marginBottom: 4,
   },
   currentAlbumName: {
+    fontSize: 18,
+    fontWeight: "bold",
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 5,
+    marginBottom: 4,
   },
   photoCountText: {
-    color: "#ccc",
-    fontSize: 12,
+    fontSize: 14,
+    color: "#999",
   },
   locationButtonsContainer: {
     flexDirection: "row",
@@ -749,41 +781,40 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   locationButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 10,
+    marginRight: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 20,
-    marginRight: 10,
     minWidth: 80,
   },
   selectedLocationButton: {
-    backgroundColor: "rgba(0, 122, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   locationButtonText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "500",
     textAlign: "center",
   },
   selectedLocationButtonText: {
-    fontWeight: "600",
+    fontWeight: "bold",
   },
   addLocationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 8,
   },
   addLocationButtonText: {
     color: "#fff",
-    fontSize: 24,
-    fontWeight: "300",
+    fontSize: 20,
+    fontWeight: "bold",
   },
   captureSection: {
     alignItems: "center",
-    marginBottom: 20,
   },
   captureButton: {
     width: 80,
@@ -792,7 +823,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.3)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   captureButtonInner: {
     width: 60,
@@ -801,12 +832,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   captureHint: {
-    color: "#aaa",
     fontSize: 12,
-    fontWeight: "400",
+    color: "#ccc",
     textAlign: "center",
+    lineHeight: 16,
   },
-
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -814,31 +844,32 @@ const styles = StyleSheet.create({
   },
   modalBlur: {
     flex: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    width: "100%",
   },
   modalContent: {
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    padding: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 20,
-    width: width * 0.85,
-    maxWidth: 400,
+    padding: 24,
+    width: width * 0.8,
+    maxWidth: 320,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
-    color: "#fff",
+    fontWeight: "bold",
+    color: "#333",
     textAlign: "center",
     marginBottom: 20,
   },
   modalInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 10,
-    padding: 15,
-    color: "#fff",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 12,
+    padding: 16,
     fontSize: 16,
     marginBottom: 20,
+    backgroundColor: "#fff",
   },
   modalButtons: {
     flexDirection: "row",
@@ -846,49 +877,46 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: "center",
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginHorizontal: 4,
   },
   modalCancelButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    marginRight: 10,
+    backgroundColor: "#f0f0f0",
   },
   modalAddButton: {
     backgroundColor: "#007AFF",
-    marginLeft: 10,
   },
   modalCancelButtonText: {
-    color: "#fff",
+    color: "#666",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
+    textAlign: "center",
   },
   modalAddButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    textAlign: "center",
   },
   albumListModal: {
     maxHeight: 200,
     marginBottom: 20,
   },
   albumItemModal: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingVertical: 12,
-    paddingHorizontal: 15,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 8,
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
   },
   albumNameModal: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
   },
   albumCountModal: {
-    color: "#ccc",
     fontSize: 14,
+    color: "#666",
   },
 });
