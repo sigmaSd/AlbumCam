@@ -2,10 +2,10 @@ name: Android Build
 
 on:
   push:
-    branches: [main, master, fdroid-publish]
+    branches: [main, master, fdroid-publish, foss-camera-native]
     tags: ["v*"]
   pull_request:
-    branches: [main, master, fdroid-publish]
+    branches: [main, master, fdroid-publish, foss-camera-native]
 
 permissions:
   contents: write
@@ -35,8 +35,13 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prebuild Android
-        run: npx expo prebuild --platform android --clean
+      - name: Prebuild Android (only if android folder doesn't exist)
+        run: |
+          if [ ! -d "android" ]; then
+            npx expo prebuild --platform android --clean
+          else
+            echo "Android folder exists, skipping prebuild (using committed native code)"
+          fi
 
       - name: Make Gradlew executable
         run: chmod +x android/gradlew
