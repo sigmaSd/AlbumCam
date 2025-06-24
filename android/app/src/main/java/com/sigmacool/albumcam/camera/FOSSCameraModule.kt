@@ -226,23 +226,15 @@ class FOSSCameraModule(reactContext: ReactApplicationContext) : ReactContextBase
             }
 
             if (newCameraId != null) {
-                closeCamera(object : Promise {
-                    override fun resolve(value: Any?) {
-                        openCamera(newCameraId, promise)
-                    }
-                    override fun reject(code: String?, message: String?) {
-                        promise.reject(code, message)
-                    }
-                    override fun reject(code: String?, throwable: Throwable?) {
-                        promise.reject(code, throwable)
-                    }
-                    override fun reject(code: String?, message: String?, throwable: Throwable?) {
-                        promise.reject(code, message, throwable)
-                    }
-                    override fun reject(throwable: Throwable?) {
-                        promise.reject(throwable)
-                    }
-                })
+                // Close current camera and open new one
+                cameraCaptureSession?.close()
+                cameraCaptureSession = null
+                cameraDevice?.close()
+                cameraDevice = null
+
+                // Open the new camera
+                currentCameraId = newCameraId
+                openCamera(newCameraId, promise)
             } else {
                 promise.reject("CAMERA_ERROR", "No alternative camera found")
             }
