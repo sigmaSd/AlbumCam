@@ -36,7 +36,7 @@ export const CameraScreen: React.FC = () => {
   // Camera state
   const [facing, setFacing] = useState<"back" | "front">("back");
   const [flash, setFlash] = useState<"off" | "on">("off");
-  const [zoom, setZoom] = useState(CAMERA_CONFIG.DEFAULT_ZOOM);
+  const [zoom, setZoom] = useState<number>(CAMERA_CONFIG.DEFAULT_ZOOM);
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(
     null,
   );
@@ -236,8 +236,7 @@ export const CameraScreen: React.FC = () => {
   };
 
   const zoomIn = () => {
-    // deno-lint-ignore no-explicit-any
-    setZoom((current: any) =>
+    setZoom((current: number) =>
       Math.min(current + CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MAX_ZOOM)
     );
   };

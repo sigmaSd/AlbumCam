@@ -2,7 +2,7 @@ const { withAndroidManifest, withInfoPlist } = require("@expo/config-plugins");
 
 const withReactNativeCamera = (config) => {
   // Add Android permissions
-  config = withAndroidManifest(config, async (config) => {
+  config = withAndroidManifest(config, (config) => {
     const androidManifest = config.modResults;
 
     // Ensure permissions array exists
@@ -58,7 +58,7 @@ const withReactNativeCamera = (config) => {
   });
 
   // Add iOS permissions
-  config = withInfoPlist(config, async (config) => {
+  config = withInfoPlist(config, (config) => {
     const plist = config.modResults;
 
     // Camera usage description
