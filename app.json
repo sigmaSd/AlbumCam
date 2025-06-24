@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sigmasd.albumcam"
     },
     "android": {
       "adaptiveIcon": {
@@ -50,7 +51,8 @@
             "enableProguardInReleaseBuilds": false
           }
         }
-      ]
+      ],
+      "./plugins/react-native-camera-plugin.js"
     ],
     "experiments": {
       "typedRoutes": true
