@@ -1,3 +1,3 @@
-import { CameraScreen } from "../../src/screens/CameraScreen.tsx";
+import { FOSSCameraScreen } from "../../src/screens/FOSSCameraScreen.tsx";
 
-export default CameraScreen;
+export default FOSSCameraScreen;

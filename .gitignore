@@ -18,7 +18,7 @@ expo-env.d.ts
 *.mobileprovision
 
 # Auto-generated native folders (expo prebuild)
-android/
+# android/ - uncommented to allow committing FOSS camera native code
 ios/
 
 # Metro
