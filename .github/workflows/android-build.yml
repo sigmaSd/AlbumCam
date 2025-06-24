@@ -2,10 +2,10 @@ name: Android Build
 
 on:
   push:
-    branches: [main, master, fdroid-publish]
+    branches: [main, master, fdroid-publish, feat/react-native-camera-foss]
     tags: ["v*"]
   pull_request:
-    branches: [main, master, fdroid-publish]
+    branches: [main, master, fdroid-publish, feat/react-native-camera-foss]
 
 permissions:
   contents: write
@@ -41,30 +41,27 @@ jobs:
       - name: Make Gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build Android Debug APK
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        run: cd android && ./gradlew assembleDebug
+      - name: Create keystore for release build
+        run: |
+          mkdir -p android/app
+          keytool -genkey -v -keystore android/app/release.keystore -alias albumcam -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=AlbumCam, OU=AlbumCam, O=AlbumCam, L=City, ST=State, C=US"
 
       - name: Build Android Release APK
-        if: startsWith(github.ref, 'refs/tags/')
-        run: cd android && ./gradlew assembleRelease
-
-      - name: Upload Debug APK
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+        run: |
+          cd android
+          echo "MYAPP_RELEASE_STORE_FILE=release.keystore" >> gradle.properties
+          echo "MYAPP_RELEASE_KEY_ALIAS=albumcam" >> gradle.properties
+          echo "MYAPP_RELEASE_STORE_PASSWORD=password" >> gradle.properties
+          echo "MYAPP_RELEASE_KEY_PASSWORD=password" >> gradle.properties
+          ./gradlew assembleRelease
 
       - name: Upload Release APK
-        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Get APK info
-        if: startsWith(github.ref, 'refs/tags/')
         id: apk_info
         run: |
           APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
@@ -101,7 +98,7 @@ jobs:
             This APK is automatically built from source code using GitHub Actions. You can verify the build process in the [Actions tab](https://github.com/sigmaSd/AlbumCam/actions).
 
             ### 🛡️ F-Droid
-            This app is also available on F-Droid for enhanced security and automatic updates.
+            This app is now F-Droid compatible using react-native-camera instead of expo-camera.
           draft: false
           prerelease: false
           generate_release_notes: true
