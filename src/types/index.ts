@@ -5,7 +5,6 @@ export type FlashMode = "off" | "on";
 export type Location = {
   id: string;
   name: string;
-  path: string;
 };
 
 export type AsyncStorageInterface = {

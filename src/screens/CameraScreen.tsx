@@ -12,8 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { type CameraType, CameraView, useCameraPermissions } from "expo-camera";
-import * as MediaLibrary from "expo-media-library";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import {
@@ -27,26 +25,26 @@ import { StorageService } from "../utils/storage.ts";
 import { CameraService } from "../utils/camera.ts";
 import { CAMERA_CONFIG, DEFAULT_LOCATION } from "../constants";
 import type { Location } from "../types/index.ts";
+import { CameraView } from "../components/CameraView.tsx";
+import CameraModule from "../native/camera/CameraModule.ts";
 
 const { width } = Dimensions.get("window");
 
 export const CameraScreen: React.FC = () => {
   // Camera state
-  const [facing, setFacing] = useState<CameraType>("back");
-  const [flash, setFlash] = useState<"off" | "on">("off");
-  const [zoom, setZoom] = useState(CAMERA_CONFIG.DEFAULT_ZOOM);
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary
-    .usePermissions();
-  const [camera, setCamera] = useState<CameraView | null>(null);
+  const [facing, setFacing] = useState<"front" | "back">("back");
+  const [flash, setFlash] = useState<"off" | "on" | "auto">("off");
+  const [zoom, _setZoom] = useState(CAMERA_CONFIG.DEFAULT_ZOOM);
+  const [cameraPermission, setCameraPermission] = useState<{
+    granted: boolean;
+    canAsk: boolean;
+  }>({ granted: false, canAsk: true });
 
   // Animation states
   const [shutterAnimation] = useState(new Animated.Value(1));
   const [controlsVisible, setControlsVisible] = useState(true);
   const [lastTap, setLastTap] = useState(0);
   const [photoCount, setPhotoCount] = useState(0);
-
-  // No gesture refs needed with new API
 
   // Location buttons state
   const [locations, setLocations] = useState<Location[]>([DEFAULT_LOCATION]);
@@ -55,14 +53,13 @@ export const CameraScreen: React.FC = () => {
     false,
   );
   const [newLocationName, setNewLocationName] = useState("");
-  const [isAlbumSelectionModalVisible, setIsAlbumSelectionModalVisible] =
+  const [_isAlbumSelectionModalVisible, _setIsAlbumSelectionModalVisible] =
     useState(false);
-  // deno-lint-ignore no-explicit-any
-  const [availableAlbums, setAvailableAlbums] = useState<any[]>([]);
 
   // Load saved data when component mounts
   useEffect(() => {
     loadSavedData();
+    checkPermissions();
     updatePhotoCount();
   }, []);
 
@@ -75,6 +72,26 @@ export const CameraScreen: React.FC = () => {
   useEffect(() => {
     saveData();
   }, [locations, selectedLocationId]);
+
+  const checkPermissions = async () => {
+    try {
+      const permission = await CameraModule.checkCameraPermission();
+      setCameraPermission(permission);
+    } catch (error) {
+      console.error("Error checking camera permission:", error);
+    }
+  };
+
+  const requestPermissions = async () => {
+    try {
+      const permission = await CameraModule.requestCameraPermission();
+      setCameraPermission(permission);
+      return permission.granted;
+    } catch (error) {
+      console.error("Error requesting camera permission:", error);
+      return false;
+    }
+  };
 
   const loadSavedData = async () => {
     try {
@@ -99,8 +116,7 @@ export const CameraScreen: React.FC = () => {
 
   const updatePhotoCount = async () => {
     try {
-      // Only try to get photo count if we have media library permissions
-      if (!mediaLibraryPermission?.granted) {
+      if (!cameraPermission.granted) {
         setPhotoCount(0);
         return;
       }
@@ -148,73 +164,32 @@ export const CameraScreen: React.FC = () => {
       // Check for swipe with either sufficient translation or velocity
       if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 300) {
         if (translationX > 0 || velocityX > 0) {
+          // Swipe right - previous album
           runOnJS(switchToPreviousAlbum)();
-        } else if (translationX < 0 || velocityX < 0) {
+        } else {
+          // Swipe left - next album
           runOnJS(switchToNextAlbum)();
         }
       }
     });
 
-  const fetchAvailableAlbums = async () => {
-    try {
-      // Request media library permission if not granted
-      if (!mediaLibraryPermission?.granted) {
-        await requestMediaLibraryPermission();
-      }
-
-      const albums = await CameraService.getAllAvailableAlbums();
-      setAvailableAlbums(albums);
-    } catch (error) {
-      console.error("Error fetching albums:", error);
-      setAvailableAlbums([]);
-    }
-  };
-
-  // Handle missing permissions
-  if (!cameraPermission) {
-    return <View style={styles.container} />;
-  }
-
-  if (!cameraPermission.granted) {
-    return (
-      <View style={styles.permissionContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
-        <View style={styles.permissionContent}>
-          <Text style={styles.permissionTitle}>📸 Camera Access Required</Text>
-          <Text style={styles.permissionMessage}>
-            AlbumCam needs camera access to take photos and organize them into
-            albums.
-          </Text>
-          <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={requestCameraPermission}
-          >
-            <Text style={styles.permissionButtonText}>Grant Camera Access</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  const toggleCameraFacing = () => {
-    setFacing((current) => (current === "back" ? "front" : "back"));
-  };
-
   const toggleFlash = () => {
-    setFlash((current) => (current === "off" ? "on" : "off"));
+    setFlash((prev) => {
+      switch (prev) {
+        case "off":
+          return "on";
+        case "on":
+          return "auto";
+        case "auto":
+          return "off";
+        default:
+          return "off";
+      }
+    });
   };
 
-  const zoomIn = () => {
-    // deno-lint-ignore no-explicit-any
-    setZoom((current: any) =>
-      Math.min(current + CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MAX_ZOOM)
-    );
-  };
-
-  const zoomOut = () => {
-    setZoom((current: number) =>
-      Math.max(current - CAMERA_CONFIG.ZOOM_STEP, CAMERA_CONFIG.MIN_ZOOM)
-    );
+  const toggleCamera = () => {
+    setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
   const toggleControlsVisibility = () => {
@@ -226,9 +201,18 @@ export const CameraScreen: React.FC = () => {
   };
 
   const takePicture = async () => {
-    if (!camera) return;
-
     try {
+      if (!cameraPermission.granted) {
+        const granted = await requestPermissions();
+        if (!granted) {
+          Alert.alert(
+            "Permission Required",
+            "Camera permission is required to take photos.",
+          );
+          return;
+        }
+      }
+
       // Shutter animation
       Animated.sequence([
         Animated.timing(shutterAnimation, {
@@ -243,7 +227,11 @@ export const CameraScreen: React.FC = () => {
         }),
       ]).start();
 
-      const photo = await camera.takePictureAsync();
+      const photo = await CameraService.takePicture({
+        facing,
+        flash: flash === "auto" ? "auto" : flash,
+        quality: 0.8,
+      });
 
       if (photo) {
         const selectedLocation = locations.find((l) =>
@@ -269,7 +257,7 @@ export const CameraScreen: React.FC = () => {
       return;
     }
 
-    const isTaken = await CameraService.isAlbumNameTaken(
+    const isTaken = CameraService.isAlbumNameTaken(
       trimmedName,
       locations,
     );
@@ -281,47 +269,84 @@ export const CameraScreen: React.FC = () => {
     const newLocation: Location = {
       id: Date.now().toString(),
       name: trimmedName,
-      path: `DCIM/${trimmedName}`,
     };
 
     setLocations([...locations, newLocation]);
     setSelectedLocationId(newLocation.id);
     setNewLocationName("");
     setIsAddLocationModalVisible(false);
+
+    // Create the album
+    await CameraService.createAlbum(trimmedName);
   };
 
-  const removeLocation = (locationId: string) => {
-    if (locationId === "1") return; // Cannot remove default
-
-    const updatedLocations = locations.filter((l) => l.id !== locationId);
-    setLocations(updatedLocations);
-
-    if (selectedLocationId === locationId) {
-      setSelectedLocationId("1");
+  const deleteLocation = (locationId: string) => {
+    if (locationId === "1") {
+      Alert.alert("Cannot Delete", "Cannot delete the default album.");
+      return;
     }
+
+    Alert.alert(
+      "Delete Album",
+      "Are you sure you want to delete this album?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            const updatedLocations = locations.filter((l) =>
+              l.id !== locationId
+            );
+            setLocations(updatedLocations);
+            if (selectedLocationId === locationId) {
+              setSelectedLocationId("1");
+            }
+          },
+        },
+      ],
+    );
   };
 
-  // deno-lint-ignore no-explicit-any
-  const addLocationFromAlbum = (album: any) => {
-    const newLocation: Location = {
-      id: Date.now().toString(),
-      name: album.title,
-      path: `DCIM/${album.title}`,
-    };
+  const selectedLocation = locations.find((l) => l.id === selectedLocationId);
 
-    setLocations([...locations, newLocation]);
-    setSelectedLocationId(newLocation.id);
-    setIsAlbumSelectionModalVisible(false);
-  };
+  if (!cameraPermission.granted && !cameraPermission.canAsk) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.permissionContainer}>
+          <Text style={styles.permissionText}>
+            Camera permission is required to use this app.
+          </Text>
+          <Text style={styles.permissionSubtext}>
+            Please enable camera permission in your device settings.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!cameraPermission.granted) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.permissionContainer}>
+          <Text style={styles.permissionText}>
+            Camera permission is required to take photos.
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermissions}
+          >
+            <Text style={styles.permissionButtonText}>Grant Permission</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        />
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
 
         {/* Camera View */}
         <GestureDetector gesture={panGesture}>
@@ -337,253 +362,161 @@ export const CameraScreen: React.FC = () => {
               <CameraView
                 style={styles.camera}
                 facing={facing}
-                ref={(ref) => setCamera(ref)}
-                enableTorch={flash === "on"}
+                flash={flash}
                 zoom={zoom}
                 onTouchEnd={toggleControlsVisibility}
-              />
-
-              {controlsVisible && (
-                <>
-                  {/* Top Controls Bar */}
-                  <View style={styles.topControlsBar}>
-                    <TouchableOpacity
-                      style={[
-                        styles.controlButton,
-                        flash === "on" && styles.activeControl,
-                      ]}
-                      onPress={toggleFlash}
-                    >
-                      <Text
+              >
+                {controlsVisible && (
+                  <>
+                    {/* Top Controls Bar */}
+                    <View style={styles.topControlsBar}>
+                      <TouchableOpacity
                         style={[
-                          styles.controlButtonText,
-                          flash === "on" && styles.activeControlText,
+                          styles.controlButton,
+                          flash !== "off" && styles.activeControl,
                         ]}
+                        onPress={toggleFlash}
                       >
-                        {flash === "on" ? "⚡" : "⚡"}
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          style={[
+                            styles.controlButtonText,
+                            flash !== "off" && styles.activeControlText,
+                          ]}
+                        >
+                          {flash === "on"
+                            ? "⚡"
+                            : flash === "auto"
+                            ? "🔆"
+                            : "⚡"}
+                        </Text>
+                      </TouchableOpacity>
 
-                    <View style={styles.zoomIndicator}>
-                      <Text style={styles.zoomText}>
-                        {(zoom * 2 + 1).toFixed(1)}x
-                      </Text>
+                      <View style={styles.zoomIndicator}>
+                        <Text style={styles.zoomText}>
+                          {(zoom * 2 + 1).toFixed(1)}x
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        style={styles.controlButton}
+                        onPress={toggleCamera}
+                      >
+                        <Text style={styles.controlButtonText}>🔄</Text>
+                      </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity
-                      style={styles.controlButton}
-                      onPress={toggleCameraFacing}
-                    >
-                      <Text style={styles.controlButtonText}>🔄</Text>
-                    </TouchableOpacity>
-                  </View>
+                    {/* Bottom Controls */}
+                    <View style={styles.bottomControlsContainer}>
+                      {/* Location Buttons Row */}
+                      <View style={styles.locationButtonsContainer}>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles
+                            .locationButtonsScrollView}
+                        >
+                          {locations.map((location) => (
+                            <TouchableOpacity
+                              key={location.id}
+                              style={[
+                                styles.locationButton,
+                                selectedLocationId === location.id &&
+                                styles.selectedLocationButton,
+                              ]}
+                              onPress={() => setSelectedLocationId(location.id)}
+                              onLongPress={() => deleteLocation(location.id)}
+                            >
+                              <Text
+                                style={[
+                                  styles.locationButtonText,
+                                  selectedLocationId === location.id &&
+                                  styles.selectedLocationButtonText,
+                                ]}
+                              >
+                                {location.name}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                          <TouchableOpacity
+                            style={styles.addLocationButton}
+                            onPress={() => setIsAddLocationModalVisible(true)}
+                          >
+                            <Text style={styles.addLocationButtonText}>+</Text>
+                          </TouchableOpacity>
+                        </ScrollView>
+                      </View>
 
-                  {/* Side Zoom Controls */}
-                  <View style={styles.sideControls}>
-                    <TouchableOpacity
-                      style={styles.zoomButton}
-                      onPress={zoomIn}
-                      disabled={zoom >= CAMERA_CONFIG.MAX_ZOOM}
-                    >
-                      <Text
-                        style={[
-                          styles.zoomButtonText,
-                          zoom >= CAMERA_CONFIG.MAX_ZOOM &&
-                          styles.disabledText,
-                        ]}
-                      >
-                        +
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.zoomButton}
-                      onPress={zoomOut}
-                      disabled={zoom <= CAMERA_CONFIG.MIN_ZOOM}
-                    >
-                      <Text
-                        style={[
-                          styles.zoomButtonText,
-                          zoom <= CAMERA_CONFIG.MIN_ZOOM &&
-                          styles.disabledText,
-                        ]}
-                      >
-                        −
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
+                      {/* Camera Controls Row */}
+                      <View style={styles.cameraControlsRow}>
+                        <View style={styles.albumInfo}>
+                          <Text style={styles.albumName}>
+                            {selectedLocation?.name || "Default"}
+                          </Text>
+                          <Text style={styles.photoCount}>
+                            {photoCount} photos
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          style={styles.captureButton}
+                          onPress={takePicture}
+                          activeOpacity={0.8}
+                        >
+                          <View style={styles.captureButtonInner} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.albumButton}
+                          onPress={() => _setIsAlbumSelectionModalVisible(true)}
+                        >
+                          <Text style={styles.albumButtonText}>📁</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </>
+                )}
+              </CameraView>
             </Animated.View>
-
-            <BlurView intensity={50} style={styles.bottomContainer}>
-              {/* Current Album Display */}
-              <View style={styles.currentAlbumContainer}>
-                <Text style={styles.currentAlbumLabel}>Current Album</Text>
-                <Text style={styles.currentAlbumName}>
-                  📁{" "}
-                  {locations.find((l) => l.id === selectedLocationId)?.name ||
-                    "Default"}
-                </Text>
-                <Text style={styles.photoCountText}>
-                  {photoCount} photo{photoCount !== 1 ? "s" : ""}
-                </Text>
-              </View>
-
-              {/* Location Buttons Container */}
-              <View style={styles.locationButtonsContainer}>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.locationScrollView}
-                  contentContainerStyle={styles.locationButtonsScroll}
-                >
-                  {locations.map((location) => (
-                    <TouchableOpacity
-                      key={location.id}
-                      style={[
-                        styles.locationButton,
-                        selectedLocationId === location.id &&
-                        styles.selectedLocationButton,
-                      ]}
-                      onPress={() => {
-                        setSelectedLocationId(location.id);
-                      }}
-                      onLongPress={() => {
-                        if (location.id !== "1") {
-                          Alert.alert(
-                            "Remove Album",
-                            `Remove "${location.name}" album?`,
-                            [
-                              { text: "Cancel", style: "cancel" },
-                              {
-                                text: "Remove",
-                                onPress: () => removeLocation(location.id),
-                                style: "destructive",
-                              },
-                            ],
-                          );
-                        }
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.locationButtonText,
-                          selectedLocationId === location.id &&
-                          styles.selectedLocationButtonText,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {location.id === "1" ? "📱" : "📁"} {location.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
-                {/* Fixed Add Button */}
-                <TouchableOpacity
-                  style={styles.addLocationButton}
-                  onPress={() => {
-                    setIsAddLocationModalVisible(true);
-                  }}
-                  onLongPress={async () => {
-                    await fetchAvailableAlbums();
-                    setIsAlbumSelectionModalVisible(true);
-                  }}
-                >
-                  <Text style={styles.addLocationButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Capture Button */}
-              <View style={styles.captureSection}>
-                <TouchableOpacity
-                  style={styles.captureButton}
-                  onPress={takePicture}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.captureButtonInner} />
-                </TouchableOpacity>
-                <Text style={styles.captureHint}>
-                  Tap to capture • Photos saved to camera roll • Swipe
-                  left/right to switch albums • Double tap to hide controls
-                </Text>
-              </View>
-            </BlurView>
           </View>
         </GestureDetector>
 
         {/* Add Location Modal */}
         <Modal
           animationType="slide"
-          transparent
+          transparent={true}
           visible={isAddLocationModalVisible}
           onRequestClose={() => setIsAddLocationModalVisible(false)}
         >
-          <View style={styles.modalContainer}>
-            <BlurView intensity={80} style={styles.modalBlur}>
+          <View style={styles.modalOverlay}>
+            <BlurView intensity={20} style={styles.modalBlur}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Add New Album</Text>
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Album name"
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#999"
                   value={newLocationName}
                   onChangeText={setNewLocationName}
-                  autoFocus
+                  maxLength={50}
+                  autoFocus={true}
                 />
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
-                    style={[styles.modalButton, styles.modalCancelButton]}
+                    style={[styles.modalButton, styles.cancelButton]}
                     onPress={() => {
                       setIsAddLocationModalVisible(false);
                       setNewLocationName("");
                     }}
                   >
-                    <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.modalButton, styles.modalAddButton]}
+                    style={[styles.modalButton, styles.addButton]}
                     onPress={addLocation}
                   >
-                    <Text style={styles.modalAddButtonText}>Add Album</Text>
+                    <Text style={styles.addButtonText}>Add</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </BlurView>
-          </View>
-        </Modal>
-
-        {/* Album Selection Modal */}
-        <Modal
-          animationType="slide"
-          transparent
-          visible={isAlbumSelectionModalVisible}
-          onRequestClose={() => setIsAlbumSelectionModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <BlurView intensity={80} style={styles.modalBlur}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Select Existing Album</Text>
-                <ScrollView style={styles.albumListModal}>
-                  {availableAlbums.map((album) => (
-                    <TouchableOpacity
-                      key={album.id}
-                      style={styles.albumItemModal}
-                      onPress={() => addLocationFromAlbum(album)}
-                    >
-                      <Text style={styles.albumNameModal}>{album.title}</Text>
-                      <Text style={styles.albumCountModal}>
-                        {album.assetCount} photos
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.modalCancelButton]}
-                  onPress={() => setIsAlbumSelectionModalVisible(false)}
-                >
-                  <Text style={styles.modalCancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
               </View>
             </BlurView>
           </View>
@@ -600,33 +533,27 @@ const styles = StyleSheet.create({
   },
   permissionContainer: {
     flex: 1,
-    backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
   },
-  permissionContent: {
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  permissionTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
+  permissionText: {
     color: "#fff",
-    marginBottom: 16,
+    fontSize: 18,
     textAlign: "center",
+    marginBottom: 10,
   },
-  permissionMessage: {
-    fontSize: 16,
+  permissionSubtext: {
     color: "#ccc",
+    fontSize: 14,
     textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   permissionButton: {
     backgroundColor: "#007AFF",
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
   permissionButtonText: {
     color: "#fff",
@@ -641,158 +568,125 @@ const styles = StyleSheet.create({
   },
   topControlsBar: {
     position: "absolute",
-    top: 60,
-    left: 20,
-    right: 20,
+    top: 50,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: 20,
     zIndex: 10,
-    paddingHorizontal: 10,
   },
   controlButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 2,
+    borderColor: "transparent",
   },
   activeControl: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: "#FFD700",
+    backgroundColor: "rgba(255, 215, 0, 0.2)",
   },
   controlButtonText: {
-    fontSize: 20,
     color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   activeControlText: {
-    color: "#FFD60A",
+    color: "#FFD700",
   },
   zoomIndicator: {
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
   },
   zoomText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "bold",
   },
-  sideControls: {
-    position: "absolute",
-    right: 20,
-    top: 150,
-    alignItems: "center",
-    zIndex: 10,
-  },
-  zoomButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  zoomButtonText: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "600",
-  },
-  disabledText: {
-    color: "#666",
-  },
-  bottomContainer: {
+  bottomControlsContainer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: 20,
     paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
-  currentAlbumContainer: {
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  currentAlbumLabel: {
-    color: "#ccc",
-    fontSize: 12,
-    marginBottom: 5,
-  },
-  currentAlbumName: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 5,
-  },
-  photoCountText: {
-    color: "#ccc",
-    fontSize: 12,
+    zIndex: 10,
   },
   locationButtonsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: 20,
   },
-  locationScrollView: {
-    flex: 1,
-  },
-  locationButtonsScroll: {
-    paddingRight: 10,
+  locationButtonsScrollView: {
+    paddingHorizontal: 20,
   },
   locationButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     marginRight: 10,
-    minWidth: 80,
+    borderWidth: 2,
+    borderColor: "transparent",
   },
   selectedLocationButton: {
-    backgroundColor: "rgba(0, 122, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: "#fff",
   },
   locationButtonText: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "500",
-    textAlign: "center",
   },
   selectedLocationButtonText: {
-    fontWeight: "600",
+    fontWeight: "bold",
   },
   addLocationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
     backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderStyle: "dashed",
   },
   addLocationButtonText: {
     color: "#fff",
-    fontSize: 24,
-    fontWeight: "300",
+    fontSize: 14,
+    fontWeight: "bold",
   },
-  captureSection: {
+  cameraControlsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  albumInfo: {
+    flex: 1,
+    alignItems: "flex-start",
+  },
+  albumName: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  photoCount: {
+    color: "#ccc",
+    fontSize: 12,
   },
   captureButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    borderWidth: 4,
+    borderColor: "#fff",
   },
   captureButtonInner: {
     width: 60,
@@ -800,36 +694,35 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: "#fff",
   },
-  captureHint: {
-    color: "#aaa",
-    fontSize: 12,
-    fontWeight: "400",
-    textAlign: "center",
+  albumButton: {
+    flex: 1,
+    alignItems: "flex-end",
   },
-
-  modalContainer: {
+  albumButtonText: {
+    fontSize: 24,
+  },
+  modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   modalBlur: {
     flex: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    width: "100%",
   },
   modalContent: {
-    backgroundColor: "rgba(0, 0, 0, 0.9)",
-    padding: 30,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
     borderRadius: 20,
-    width: width * 0.85,
-    maxWidth: 400,
+    padding: 20,
+    width: width * 0.8,
+    alignItems: "center",
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
     color: "#fff",
-    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
     marginBottom: 20,
   },
   modalInput: {
@@ -838,57 +731,37 @@ const styles = StyleSheet.create({
     padding: 15,
     color: "#fff",
     fontSize: 16,
+    width: "100%",
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
+    width: "100%",
   },
   modalButton: {
     flex: 1,
-    paddingVertical: 15,
+    paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
+    marginHorizontal: 5,
   },
-  modalCancelButton: {
+  cancelButton: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    marginRight: 10,
   },
-  modalAddButton: {
+  addButton: {
     backgroundColor: "#007AFF",
-    marginLeft: 10,
   },
-  modalCancelButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  modalAddButtonText: {
+  cancelButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
-  albumListModal: {
-    maxHeight: 200,
-    marginBottom: 20,
-  },
-  albumItemModal: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  albumNameModal: {
+  addButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
-  },
-  albumCountModal: {
-    color: "#ccc",
-    fontSize: 14,
+    fontWeight: "600",
   },
 });
