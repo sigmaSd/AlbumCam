@@ -2,10 +2,10 @@ name: Android Build
 
 on:
   push:
-    branches: [main, master, fdroid-publish]
+    branches: [main, master, fdroid-publish, replace-expo-camera-with-native]
     tags: ["v*"]
   pull_request:
-    branches: [main, master, fdroid-publish]
+    branches: [main, master, fdroid-publish, replace-expo-camera-with-native]
 
 permissions:
   contents: write
@@ -41,23 +41,10 @@ jobs:
       - name: Make Gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build Android Debug APK
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        run: cd android && ./gradlew assembleDebug
-
       - name: Build Android Release APK
-        if: startsWith(github.ref, 'refs/tags/')
         run: cd android && ./gradlew assembleRelease
 
-      - name: Upload Debug APK
-        if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-
       - name: Upload Release APK
-        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: app-release

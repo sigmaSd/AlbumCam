@@ -18,7 +18,7 @@ expo-env.d.ts
 *.mobileprovision
 
 # Auto-generated native folders (expo prebuild)
-android/
+# android/ - unignored for CI builds
 ios/
 
 # Metro
