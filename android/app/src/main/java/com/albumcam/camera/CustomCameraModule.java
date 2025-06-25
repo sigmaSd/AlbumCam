@@ -41,6 +41,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.bridge.BaseActivityEventListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -57,8 +58,10 @@ public class CustomCameraModule extends ReactContextBaseJavaModule {
 
     private static final String MODULE_NAME = "CustomCameraModule";
     private static final int REQUEST_CAMERA_PERMISSION = 200;
+    private static final int REQUEST_STORAGE_PERMISSION = 201;
 
     private ReactApplicationContext reactContext;
+    private Promise permissionPromise;
     private CameraManager cameraManager;
     private String cameraId;
     private CameraDevice cameraDevice;
@@ -73,6 +76,30 @@ public class CustomCameraModule extends ReactContextBaseJavaModule {
         super(reactContext);
         this.reactContext = reactContext;
         this.cameraManager = (CameraManager) reactContext.getSystemService(Context.CAMERA_SERVICE);
+
+        // Add permission result listener
+        reactContext.addActivityEventListener(new BaseActivityEventListener() {
+            @Override
+            public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+                if (requestCode == REQUEST_CAMERA_PERMISSION && permissionPromise != null) {
+                    WritableMap result = Arguments.createMap();
+                    boolean allGranted = true;
+
+                    // Check if all requested permissions are granted
+                    for (int grantResult : grantResults) {
+                        if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                            allGranted = false;
+                            break;
+                        }
+                    }
+
+                    result.putBoolean("granted", allGranted);
+                    result.putBoolean("canAsk", true);
+                    permissionPromise.resolve(result);
+                    permissionPromise = null;
+                }
+            }
+        });
     }
 
     @Override
@@ -84,8 +111,12 @@ public class CustomCameraModule extends ReactContextBaseJavaModule {
     public void checkCameraPermission(Promise promise) {
         try {
             WritableMap result = Arguments.createMap();
-            boolean granted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-            result.putBoolean("granted", granted);
+            boolean cameraGranted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+            boolean storageGranted = true; // Android 10+ uses scoped storage, no permission needed
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                storageGranted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            }
+            result.putBoolean("granted", cameraGranted && storageGranted);
             result.putBoolean("canAsk", true);
             promise.resolve(result);
         } catch (Exception e) {
@@ -97,16 +128,39 @@ public class CustomCameraModule extends ReactContextBaseJavaModule {
     public void requestCameraPermission(Promise promise) {
         try {
             WritableMap result = Arguments.createMap();
-            if (ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            boolean cameraGranted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+            boolean storageGranted = true; // Android 10+ uses scoped storage, no permission needed
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                storageGranted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            }
+
+            if (cameraGranted && storageGranted) {
                 result.putBoolean("granted", true);
                 result.putBoolean("canAsk", true);
                 promise.resolve(result);
             } else {
-                // In a real implementation, you'd request permission through the activity
-                // For now, we'll return false and suggest user grants permission manually
-                result.putBoolean("granted", false);
-                result.putBoolean("canAsk", true);
-                promise.resolve(result);
+                // Store the promise to resolve it later in the permission callback
+                permissionPromise = promise;
+
+                // Request permissions based on Android version
+                String[] permissions;
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                    permissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                } else {
+                    permissions = new String[]{Manifest.permission.CAMERA};
+                }
+
+                if (reactContext.getCurrentActivity() != null) {
+                    ActivityCompat.requestPermissions(
+                        reactContext.getCurrentActivity(),
+                        permissions,
+                        REQUEST_CAMERA_PERMISSION
+                    );
+                } else {
+                    result.putBoolean("granted", false);
+                    result.putBoolean("canAsk", true);
+                    promise.resolve(result);
+                }
             }
         } catch (Exception e) {
             promise.reject("PERMISSION_REQUEST_ERROR", e.getMessage());
@@ -115,6 +169,18 @@ public class CustomCameraModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void takePicture(ReadableMap config, Promise promise) {
+        // Check permissions first
+        boolean cameraGranted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        boolean storageGranted = true; // Android 10+ uses scoped storage, no permission needed
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            storageGranted = ContextCompat.checkSelfPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        if (!cameraGranted || !storageGranted) {
+            promise.reject("PERMISSION_DENIED", "Camera or storage permission not granted");
+            return;
+        }
+
         if (cameraDevice == null) {
             openCamera(config, promise);
             return;
