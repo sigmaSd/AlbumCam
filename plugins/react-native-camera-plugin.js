@@ -1,4 +1,6 @@
-const { withAndroidManifest, withInfoPlist } = require("@expo/config-plugins");
+const { withAndroidManifest, withInfoPlist, withAppBuildGradle } = require(
+  "@expo/config-plugins",
+);
 
 const withReactNativeCamera = (config) => {
   // Add Android permissions
@@ -76,6 +78,44 @@ const withReactNativeCamera = (config) => {
     // Photo library add usage description
     plist.NSPhotoLibraryAddUsageDescription =
       "AlbumCam needs permission to save photos to your photo library.";
+
+    return config;
+  });
+
+  // Add app-level Gradle configuration to force general flavor
+  config = withAppBuildGradle(config, async (config) => {
+    const buildGradle = config.modResults.contents;
+
+    // Check if the configuration is already present
+    if (
+      !buildGradle.includes("missingDimensionStrategy 'react-native-camera'")
+    ) {
+      // Find the android block and add the dimension strategy inside defaultConfig
+      const androidBlockRegex = /android\s*\{[\s\S]*?defaultConfig\s*\{/;
+      const match = buildGradle.match(androidBlockRegex);
+
+      if (match) {
+        // Insert the dimension strategy right after defaultConfig {
+        const insertPoint = match.index + match[0].length;
+        const beforeInsert = buildGradle.substring(0, insertPoint);
+        const afterInsert = buildGradle.substring(insertPoint);
+
+        const dimensionStrategy = `
+        missingDimensionStrategy 'react-native-camera', 'general'`;
+
+        config.modResults.contents = beforeInsert + dimensionStrategy +
+          afterInsert;
+      } else {
+        // Fallback: add at the end of the file
+        const fallbackConfig = `
+android {
+    defaultConfig {
+        missingDimensionStrategy 'react-native-camera', 'general'
+    }
+}`;
+        config.modResults.contents = buildGradle + fallbackConfig;
+      }
+    }
 
     return config;
   });
