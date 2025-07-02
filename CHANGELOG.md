@@ -5,6 +5,18 @@ All notable changes to AlbumCam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1]
+
+### Fixed
+- **Build System**: Fixed missing expo-linking dependency causing CI build failures
+- **Deep Linking**: Resolved module resolution error for expo-linking in Android builds
+- **Dependencies**: Added expo-linking ~7.1.0 to package dependencies for proper URL handling
+
+### Technical
+- Fixed "Unable to resolve module expo-linking" error in Metro bundler
+- Ensured proper deep linking functionality for app URL handling
+- Improved CI/CD pipeline stability with complete dependency declarations
+
 ## [1.4.0]
 
 ### Added
