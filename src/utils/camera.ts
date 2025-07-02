@@ -1,4 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
+import * as FileSystem from "expo-file-system";
 import type { Location } from "../types/index.ts";
 
 export class CameraService {
@@ -22,8 +23,25 @@ export class CameraService {
         throw new Error("Media library permission not granted");
       }
 
-      // Create asset from photo - this saves to camera roll first
-      const asset = await MediaLibrary.createAssetAsync(photoUri);
+      // Generate timestamped filename
+      const timestampedFilename = this.generatePhotoFileName();
+      const fileExtension = photoUri.split(".").pop() || "jpg";
+      const newFilename = timestampedFilename.replace(
+        ".jpg",
+        `.${fileExtension}`,
+      );
+
+      // Create a new file path with the timestamped name
+      const newPhotoUri = `${FileSystem.documentDirectory}${newFilename}`;
+
+      // Copy the photo to the new location with timestamped name
+      await FileSystem.copyAsync({
+        from: photoUri,
+        to: newPhotoUri,
+      });
+
+      // Create asset from the renamed photo - this saves to camera roll first
+      const asset = await MediaLibrary.createAssetAsync(newPhotoUri);
 
       // For non-default locations, try to create/use the specific album
       if (location.id !== "1") { // Not the default album
@@ -50,6 +68,13 @@ export class CameraService {
             albumError,
           );
         }
+      }
+
+      // Clean up the temporary renamed file
+      try {
+        await FileSystem.deleteAsync(newPhotoUri, { idempotent: true });
+      } catch (cleanupError) {
+        console.warn("Could not clean up temporary file:", cleanupError);
       }
 
       return asset;
@@ -154,8 +179,15 @@ export class CameraService {
   }
 
   static generatePhotoFileName(): string {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    return `IMG_${timestamp}.jpg`;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    return `IMG_${year}${month}${day}_${hours}${minutes}${seconds}.jpg`;
   }
 
   static validateAlbumName(name: string): { isValid: boolean; error?: string } {
