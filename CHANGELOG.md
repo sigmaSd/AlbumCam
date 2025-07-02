@@ -5,6 +5,32 @@ All notable changes to AlbumCam will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0]
+
+### Added
+- **Photo Organization**: Photos now save with timestamped filenames for better organization
+- **F-Droid Support**: Added metadata and screenshots for F-Droid store listing
+- **File System Integration**: Added expo-file-system for enhanced photo management
+
+### Improved
+- **Dependencies**: Upgraded Expo SDK and related packages to latest versions
+- **React Native**: Updated to React Native 0.79.5 for improved performance
+- **Build System**: Enhanced CI/CD pipeline with streamlined build process
+- **Photo Naming**: Implemented standardized timestamp-based photo naming convention
+
+### Technical
+- Upgraded Expo from ~53.0.0 to 53.0.16
+- Updated expo-camera, expo-router, and other core dependencies
+- Added expo-file-system for advanced file operations
+- Improved photo file management with proper cleanup
+- Enhanced build compatibility and CI optimizations
+
+### Infrastructure
+- Added F-Droid metadata and store assets
+- Streamlined GitHub Actions workflow
+- Removed unnecessary build dependencies
+- Optimized build process for multiple distribution channels
+
 ## [1.3.1]
 
 ### Fixed
